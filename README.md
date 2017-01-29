@@ -1,8 +1,8 @@
 # Disassembler
 
-Addendum
-Some additional thoughts on the 68K Disassembler Project 
-0. How to start:
+# Addendum
+# Some additional thoughts on the 68K Disassembler Project 
+# 0. How to start:
 Right now, this project might seem like a pretty formidable task. It certainly has been for many students in the past. It is also one of the best exercises that I, or any other instructor teaching computer architecture, can think of to show you how it all really works. Also, when you're out interviewing for a job, take along this project to show that you really do know some 68000 assembly language programming.
 
 Where do you begin? First, forget about what language your programming this in. I could ask you to write it in C++, C# or Java and it would be just as challenging. Work on the algorithm. How do you decode an instruction? Focus on that. Also, as soon as possible create your own test program. Make it a killer. Don't make it easy, that won't stress your code enough. For example, If your program  can disassemble itself, then my test program is a snap.
@@ -45,7 +45,7 @@ Don't underestimate the importance of team dynamics.  The most common reason is 
 
  
 
-I. Project:
+# I. Project:
 I strongly urge you to organize your team with one team member as the designated tester and one team member as the keeper of the subroutines and API’s. The tester should be concerned with all the QA issues of the project. This means tasks such as bounds testing, human interface, code inspection, coding standards, appearance of the final document.
 
 This is a major assembly language project. It has several important coding challenges. Among them are:
@@ -90,7 +90,7 @@ It is not necessary to do any symbolic decoding. Just display the displacement f
 
  
 
-II. Instruction decoding
+# II. Instruction decoding
 Consider the op-codes for most instructions. If you look at the 4 most significant bits, (DB12-DB15) you can group them into 16 categories. Consider the following table:
  
 
@@ -312,7 +312,7 @@ This general algorithm will work for most cases. There are some special case ins
 
  
 
-III. Effective address calculation
+# III. Effective address calculation
  
 
 The 16-bit op-code provides all that you need to know about decoding an instruction. Remember that an instruction could contain as many as 5 16-bit words. For example, the instruction:
@@ -339,7 +339,7 @@ This is why someone should have the task of figuring out the effective address d
 
  
 
-IV. Hints on decoding immediate instructions
+# IV. Hints on decoding immediate instructions
 How to avoid a potential problem with the immediate addressing mode
 
  "Thanks to a former CSS422 student, Chuck Bond",
@@ -388,7 +388,7 @@ The “op-code portion of this instruction is  $0640, $AAAA. The pointer, when i
 
  
 
-V. Printing the instruction
+# V. Printing the instruction
  
 
 Even the simplest instruction must always take at least 1 word of memory. Even a NOP (do nothing) take a total of 16-bits. Thus,  we can get a lot of the display system working by starting the disassembler so that you can print the current address that you are pointing to in memory, the word “DATA” and the 4 hexadecimal digits that represent the word at that address. If you can do this without crashing, you’ve got a lot accomplished.
@@ -425,7 +425,7 @@ Now the instruction CMP.B is written in assembly language as CMB.B   <ea>,Dn. Th
 
  
 
-VI. Organizing the project
+# VI. Organizing the project
  
 
 Before you write one line of code, you should meet to set-up your coding conventions. This is common practice in most industrial settings. In your case, its crucial because you will each be writing different pieces of the program and you need to be able to put it together and make it work. For example, here are some issues that you need to consider:
