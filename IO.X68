@@ -1,12 +1,12 @@
 *-----------------------------------------------------------
-* Title      :
-* Written by :
+* Title      : Test 
+* Written by : Test
 * Date       :
 * Description:
 *-----------------------------------------------------------
     ORG    $1000
 START:                  ; first instruction of program
-
+    move.l  #2, d0
 * Put program code here
 
     SIMHALT             ; halt simulator
@@ -14,6 +14,7 @@ START:                  ; first instruction of program
 * Put variables and constants here
 
     END    START        ; last line of source
+
 
 *~Font name~Courier New~
 *~Font size~10~
