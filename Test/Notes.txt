@@ -1,0 +1,21 @@
+1. A MOVE.L operation with direct data going into a data register with the direct data being less than
+5 bits causes the EASY68k to perform a MOVEQ instead of a MOVE.L. 
+
+2. Similar bugs can be found with most commands which have a “Q” variant. The 68K assembler seems to 
+automatically use the less memory and processor intensive version of the command when possible. I assume 
+this is to maximize the system’s efficiency and speed.
+
+3. The Easy68k Manual shows that a MOVE operation with the destination being an address register is an 
+invalid operation, and should be a MOVEA operation. However, the Easy68k compiler gives no warning or 
+errors when trying to perform a MOVE with the destination being an address register.  Because the Easy68k 
+shows that this kind of operation is invalid, the program will display a MOVEA in place of the MOVE when 
+displaying the data.
+
+4. Our inverse assembler will start to act irregularly and will start to display error messages for 
+valid op-code data if a large amount of data/operations are sent through the inverse assembler. 
+We encountered this problem when trying our test routine that tested all possible combinations of 
+valid data for op-codes. We first thought it was our inverse assembler that was causing the irregular 
+performance, but if you repeatedly perform the same action/operation, such as NOP, through the Easy68k 
+assembler for countless times the Easy68k starts to act irregular, which results in our inverse assembler 
+acting irregular as well. The test routine that tested all possible combinations of valid data was around 
+5,500 lines of code.
