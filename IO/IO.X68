@@ -82,7 +82,7 @@ END_LOOP
                MOVE.L           (A4),D6
                CMP.L            #$00004000,D7              *Check if within set boundary(START ADDR)
                BLT              INVALID_START_INPUT
-               CMP.L            #$FFFF0000,D6       *Check if within set boundary(END ADDR)   
+               CMP.L            #$00FF0000,D6       *Check if within set boundary(END ADDR)   
                BGT              INVALID_END_INPUT
                CMP.L            D6,D7       *D7 HOLDS STARTING ADDR, D6 HOLDS ENDING ADDR
                BGT              INVALID_START_INPUT
@@ -96,7 +96,13 @@ END_LOOP
 
 
 
-
+*____________________Output______________________________________
+                 MOVE.L    #$1189,D6
+                 MOVEA.L   D6,A1    *MOVE START ADDRESS INTO A1
+                 MOVE.B    #14,D0
+                 TRAP      #15
+                 
+                 
                
 
 *_____________Check for Address Input Errors___________
@@ -144,7 +150,9 @@ LF      EQU     $0A
 INTRO   DC.B    'They call us Lil Bits.',CR,LF
         DC.B    'You abouts to get',CR,LF
         DC.B    'disassmbled',CR,LF,0
-START_ADDR  DC.B 'Enter Starting Address (Higher than $00004000):',0
-END_ADDR  DC.B 'Enter Ending Address (Lower than $FFFF0000):',0
+START_ADDR  DC.B 'Enter Starting Address (Between $00004000 && $00FF0000):',0
+END_ADDR  DC.B 'Enter Ending Address (Between $00004000 && $00FF0000):',0
 INVALID_INPUT_MES    DC.B    'INVALID INPUT, TRY AGAIN',CR,LF,0
     END    START        ; last line of source
+
+
