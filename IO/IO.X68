@@ -96,11 +96,31 @@ END_LOOP
 
 
 
-*____________________Output______________________________________
-                 MOVE.L    #$1189,D6
-                 MOVEA.L   D6,A1    *MOVE START ADDRESS INTO A1
-                 MOVE.B    #14,D0
-                 TRAP      #15
+*_____________PRINTING_______________________
+*THE IDEA HERE IS THAT I PRINT A BYTE FROM OP-CODES,PRINT 3 BYTES FROM
+*EFFECTIVE ADDRESSING AND REPEAT TILL I'VE FINISHED
+                MOVE.B              #0,D0
+                MOVE.B              #0,D5
+               *MOVE.L              COUNTER,D6
+PRINTINGLOOP    CMP.L               D5,D6
+                BEQ                 END
+                TRAP                #15
+                ADDA.L             #5,A1        *ADDS THE AMOUNT
+NEEDED TO MOVE TO NEXT OP-CODE
+                MOVEA.L             A2,A3       *A2 HOLDS EA
+                MOVEA.L             A1,A2       *A1 HOLDS OPCODE
+                MOVEA.L             A3,A1       *MOVES EA INTO A1 TO PRINT
+                TRAP                #15
+                ADDA.L              #9,A1       *ADDS THE AMOUNT
+NEEDED TO MOVE TO NEXT EA
+
+                MOVEA.L             A2,A3       *ROTATE MEMORY LOCATIONS BACK
+                MOVEA.L             A1,A2
+                MOVEA.L             A3,A1
+
+
+                ADD.L               #1,D5
+                JMP                 PRINTINGLOOP
                  
                  
                
