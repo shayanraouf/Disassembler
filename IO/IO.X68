@@ -21,18 +21,17 @@ REDO             LEA      START_ADDR,A1
                  MOVE.L   #$0,A1
                  MOVE.B   #2,D0
                  TRAP     #15
-                 JSR      ERROR_CHECK
+                 JSR      ERROR_CHECK       *CHECK FOR INVALID FORMAT
                  CMP.B    #1,D6
                  BEQ      INVALID_START_INPUT
 *____________Asking for Ending ADDRESS__________________
 ENDING_INPUT     LEA      END_ADDR,A1
                  MOVE.B   #14,D0
                  TRAP     #15
-                 MOVE.L   #$100,A1          *holds end address at
-*different place than start address
+                 MOVE.L   #$100,A1          
                  MOVE.B   #2,D0
                  TRAP     #15
-                 JSR      ERROR_CHECK
+                 JSR      ERROR_CHECK        *CHECK FOR INVALID FORMAT
                  CMP.B    #1,D6
                  BEQ      INVALID_END_INPUT
 *____________Turn Start Address into Hex from ASCII____
@@ -48,30 +47,30 @@ ENDING_INPUT     LEA      END_ADDR,A1
                MOVEM.L         A0,-(SP)
                MOVEM.L         A1,-(SP)
 
-               MOVE.B          #0,D0
-               MOVE.B          #3,D1
-CONVERT        ADD.B           #1,D0
+               MOVE.B          #0,D0            *THE NEXT THREE LINES HOLD THE COUNTER FOR THE NUMBER
+               MOVE.B          #3,D1            *OF TIMES, WE WILL CONVERT A LONG OF DATA INTO HEX
+CONVERT        ADD.B           #1,D0                
                MOVE.L          D7,(A4)+
                CMP.B           D0,D1
                BEQ             END_LOOP
                MOVEM.L         (SP)+,A3
                MOVE.B          #8,D2
-               MOVE.B          #0,D3    *OR CLR
-FOR_LOOP       CMP.B           D3,D2
-               BEQ             CONVERT
+               MOVE.B          #0,D3    
+FOR_LOOP       CMP.B           D3,D2            *THIS FOR LOOP CONVERTS THE DATA BYTE BY BYTE
+               BEQ             CONVERT          *AND PUTS THE RESULT INTO D7
                LSL.L           #4,D7
                MOVE.B          (A3)+,D6
                CMP.B           #$40,D6
 
 
-               BLE             NUMBER           *TURN INTO HEX VALUE FROM ASCII
+               BLE             NUMBER           
 LETTER         SUB.B           #$31,D6
                ADD.B           #10,D6
                JMP             END_SUB
 NUMBER         SUB.B           #$30,D6
 
 END_SUB        AND.B           #%00001111,D6
-               ADD.L            D6,D7
+               ADD.L            D6,D7           *AT THE END, THE ADDRESSES ARE STORED INTO MEMORY
                ADD.B            #1,D3
                JMP             FOR_LOOP
 END_LOOP
@@ -85,7 +84,7 @@ END_LOOP
                CMP.L            #$00FF0000,D6       *Check if within set boundary(END ADDR)   
                BGT              INVALID_END_INPUT
                CMP.L            D6,D7       *D7 HOLDS STARTING ADDR, D6 HOLDS ENDING ADDR
-               BGT              INVALID_START_INPUT
+               BGT              RESTART
 *______________________YOUR CODE STARTS HERE!!!!!!!!!!___________________
 
 
@@ -105,14 +104,12 @@ END_LOOP
 PRINTINGLOOP    CMP.L               D5,D6
                 BEQ                 END
                 TRAP                #15
-                ADDA.L             #5,A1        *ADDS THE AMOUNT
-NEEDED TO MOVE TO NEXT OP-CODE
+                ADDA.L             #5,A1        *ADDS THE AMOUNT NEEDED TO MOVE TO NEXT OP-CODE
                 MOVEA.L             A2,A3       *A2 HOLDS EA
                 MOVEA.L             A1,A2       *A1 HOLDS OPCODE
                 MOVEA.L             A3,A1       *MOVES EA INTO A1 TO PRINT
                 TRAP                #15
-                ADDA.L              #9,A1       *ADDS THE AMOUNT
-NEEDED TO MOVE TO NEXT EA
+                ADDA.L              #9,A1       *ADDS THE AMOUNT NEEDED TO MOVE TO NEXT EA
 
                 MOVEA.L             A2,A3       *ROTATE MEMORY LOCATIONS BACK
                 MOVEA.L             A1,A2
@@ -159,9 +156,21 @@ INVALID_END_INPUT      LEA      INVALID_INPUT_MES,A1
                        TRAP     #15
                        CLR      D6
                        JMP      ENDING_INPUT
+RESTART
+                       LEA RESTART_MSG,A1 
+                       MOVE.B   #14,D0
+                       TRAP     #15
+                       MOVEA.L   #$50,A1 *MOVES A1 SO MESSAGES DONT GET OVERWRITTEN
+                       MOVE.B   #2,D0
+                       TRAP     #15           
+                       CMP.B    #$59,(A1)
+                       BNE      END
+                       JMP      REDO
 FALSE
                        MOVE.B   #1,D6
                        RTS
+                       
+END                       
     SIMHALT             ; halt simulator
 
 * Put variables and constants here
@@ -170,9 +179,8 @@ LF      EQU     $0A
 INTRO   DC.B    'They call us Lil Bits.',CR,LF
         DC.B    'You abouts to get',CR,LF
         DC.B    'disassmbled',CR,LF,0
+RESTART_MSG DC.B    'INVALID PUT, WOULD YOU LIKE TO END THE PROGRAM OR TRY AGAIN? (ENTER Y TO RESTART)',0
 START_ADDR  DC.B 'Enter Starting Address (Between $00004000 && $00FF0000):',0
 END_ADDR  DC.B 'Enter Ending Address (Between $00004000 && $00FF0000):',0
 INVALID_INPUT_MES    DC.B    'INVALID INPUT, TRY AGAIN',CR,LF,0
     END    START        ; last line of source
-
-
