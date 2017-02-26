@@ -87,11 +87,93 @@ END_LOOP
                BGT              RESTART
 *______________________YOUR CODE STARTS HERE!!!!!!!!!!___________________
 
+    
+OpCodeInterpreter
+    MOVEA.L     D7,A0
+    MOVEM.L     D1-D7/A2-A6,-(SP)       ; push unused registers to stack
+    
+shift           EQU         12                      
+    LEA         JMP_TABLE,A3       ; offset into table
+    MOVE.L      A0,A2                   ; save the start of the data being read
+    MOVE.W      (A0),D1                 ; pull the instruction from memory
+    MOVE.W      D1,D2                   ; Move instruction into a working space
+    MOVE.W      #shift,D3               ; Shift 12 bits to the right
+    LSR.W       D3,D2                   ; Move the bits
+    MULU        #6,D2                   ; Form offset
+    JMP         00(A3,D2)               ; Jump indirect with index
+JMP_TABLE
+     JMP         OPCODE_0000
+     JMP         OPCODE_0001
+     JMP         OPCODE_0010
+     JMP         OPCODE_0011
+     JMP         OPCODE_0100
+     JMP         OPCODE_0101
+     JMP         OPCODE_0110
+     JMP         OPCODE_0111
+     JMP         OPCODE_1000
+     JMP         OPCODE_1001
+     JMP         OPCODE_1010
+     JMP         OPCODE_1011
+     JMP         OPCODE_1100
+     JMP         OPCODE_1101
+     JMP         OPCODE_1110
+     JMP         OPCODE_1111
+
+OPCODE_0000
+
+    JSR EA_ADDI
+    
+OPCODE_0001
+    JSR EA_MOVEB
+   
+OPCODE_0010
+    MOVE.L     #%001,D4
+    MOVE.W     (A0),D5
+    LSL.W      #7,D5 
+    LSR.W      #7,D5 
+    LSR.W      #6,D5
+    
+    CMP.W      D4,D5
+    BEQ        EA_MOVEAL 
+    BRA        EA_MOVEL    
+    
+OPCODE_0011
+
+OPCODE_0100
+
+OPCODE_0101
+
+OPCODE_0110
+
+OPCODE_0111
+
+OPCODE_1000
+
+OPCODE_1001
+
+OPCODE_1010
+
+OPCODE_1011
+
+OPCODE_1100
+
+OPCODE_1101
 
 
+OPCODE_1110
 
+OPCODE_1111
 
-
+*Effective Addressing Section----------------------------------
+EA_ADDI
+      
+EA_MOVEB
+    
+EA_MOVEL
+    
+EA_MOVEAL
+   
+*--------------------------------------------------------------
 
 
 
@@ -137,7 +219,7 @@ ERROR_LOOP       CMP      D4,D5         *CHECK FOR VALID CHARACTERS IN INPUT
                  ADD.B    #1,D4
                  JMP      ERROR_LOOP
                  MOVE.L   #0,A2
-                 MOVE.L   A2,A1
+                 MOVE.L   A2,A1 
 ERR_FINISH       RTS
 
 
@@ -184,3 +266,8 @@ START_ADDR  DC.B 'Enter Starting Address (Between $00004000 && $00FF0000):',0
 END_ADDR  DC.B 'Enter Ending Address (Between $00004000 && $00FF0000):',0
 INVALID_INPUT_MES    DC.B    'INVALID INPUT, TRY AGAIN',CR,LF,0
     END    START        ; last line of source
+
+*~Font name~Courier New~
+*~Font size~10~
+*~Tab type~1~
+*~Tab size~4~
