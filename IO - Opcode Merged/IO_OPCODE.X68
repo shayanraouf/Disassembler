@@ -90,6 +90,7 @@ END_LOOP
     
 OpCodeInterpreter
     MOVEA.L     D7,A0
+    MOVEA.L     #$00FFE000,A1
     MOVEM.L     D1-D7/A2-A6,-(SP)       ; push unused registers to stack
     
 shift           EQU         12                      
@@ -120,10 +121,20 @@ JMP_TABLE
      JMP         OPCODE_1111
 
 OPCODE_0000
-
+    MOVE.B    #$41,(A1)+ * A
+    MOVE.B    #$44,(A1)+ * D
+    MOVE.B    #$44,(A1)+ * D
+    MOVE.B    #$49,(A1)+ * I
+    MOVE.B    #$0,(A1)+ 
     JSR EA_ADDI
     
 OPCODE_0001
+    MOVE.B    #$4D,(A1)+ * M
+    MOVE.B    #$4F,(A1)+ * O
+    MOVE.B    #$56,(A1)+ * V
+    MOVE.B    #$45,(A1)+ * E
+    MOVE.B    #$42,(A1)+ * B
+    MOVE.B    #$0,(A1)+ 
     JSR EA_MOVEB
    
 OPCODE_0010
@@ -133,9 +144,26 @@ OPCODE_0010
     LSR.W      #7,D5 
     LSR.W      #6,D5
     
-    CMP.W      D4,D5
-    BEQ        EA_MOVEAL 
-    BRA        EA_MOVEL    
+    CMP.W     D4,D5
+    BEQ       OPCODE_MOVEAL
+    MOVE.B    #$4D,(A1)+ * M
+    MOVE.B    #$4F,(A1)+ * O
+    MOVE.B    #$56,(A1)+ * V
+    MOVE.B    #$45,(A1)+ * E
+    MOVE.B    #$4C,(A1)+ * L    
+    MOVE.B    #$0,(A1)+
+    BRA       EA_MOVEL
+
+OPCODE_MOVEAL
+    MOVE.B    #$4D,(A1)+ * M
+    MOVE.B    #$4F,(A1)+ * O
+    MOVE.B    #$56,(A1)+ * V
+    MOVE.B    #$45,(A1)+ * E
+    MOVE.B    #$41,(A1)+ * A
+    MOVE.B    #$4C,(A1)+ * L
+    MOVE.B    #$0,(A1)+
+    BRA       EA_MOVEAL 
+        
     
 OPCODE_0011
     MOVE.L     #%001,D4
@@ -143,11 +171,28 @@ OPCODE_0011
     LSL.W      #7,D5 
     LSR.W      #7,D5 
     LSR.W      #6,D5
+    JMP        OPCODE_MOVE
     
+CONT_0011    
     CMP.W      D4,D5
-    BEQ        EA_MOVEAW 
-    BRA        EA_MOVEW   
-
+    BEQ        OPCODE_AW
+    MOVE.B    #$57,(A1)+ * W
+    MOVE.B    #$0,(A1)+
+    BRA        EA_MOVEW
+    
+OPCODE_AW
+    MOVE.B    #$41,(A1)+ * A
+    MOVE.B    #$57,(A1)+ * W
+    MOVE.B    #$0,(A1)+
+    BRA       EA_MOVEAW 
+     
+OPCODE_MOVE
+    MOVE.B    #$4D,(A1)+ * M
+    MOVE.B    #$4F,(A1)+ * O
+    MOVE.B    #$56,(A1)+ * V
+    MOVE.B    #$45,(A1)+ * E
+    JMP       CONT_0011
+  
 OPCODE_0100
     MOVE.W     (A0),D5
     
@@ -188,10 +233,52 @@ OPCODE_0100
     BEQ        EA_LEA
     BRA        EA_MOVEM
     
+OPCODE_NOP
+    MOVE.B    #$4E,(A1)+ * N
+    MOVE.B    #$4F,(A1)+ * O
+    MOVE.B    #$50,(A1)+ * P
+    MOVE.B    #$0,(A1)+ 
     
+OPCODE_CLR
+    MOVE.B    #$43,(A1)+ * C
+    MOVE.B    #$4C,(A1)+ * L
+    MOVE.B    #$52,(A1)+ * R
+    MOVE.B    #$0,(A1)+ 
+
+OPCODE_JSR
+    MOVE.B    #$4A,(A1)+ * J
+    MOVE.B    #$53,(A1)+ * S
+    MOVE.B    #$52,(A1)+ * R
+    MOVE.B    #$0,(A1)+ 
     
+OPCODE_RTS
+
+    MOVE.B    #$52,(A1)+ * R
+    MOVE.B    #$54,(A1)+ * T
+    MOVE.B    #$53,(A1)+ * S
+    MOVE.B    #$0,(A1)+ 
+
+OPCODE_LEA
+    MOVE.B    #$4C,(A1)+ * L
+    MOVE.B    #$45,(A1)+ * E
+    MOVE.B    #$41,(A1)+ * A
+    MOVE.B    #$0,(A1)+ 
+    
+OPCODE_MOVEM
+
+    MOVE.B    #$4D,(A1)+ * M
+    MOVE.B    #$4F,(A1)+ * O
+    MOVE.B    #$56,(A1)+ * V
+    MOVE.B    #$45,(A1)+ * E
+    MOVE.B    #$4D,(A1)+ * M 
+    MOVE.B    #$0,(A1)+     
  
 OPCODE_0101
+    MOVE.B    #$41,(A1)+ * A
+    MOVE.B    #$44,(A1)+ * D
+    MOVE.B    #$44,(A1)+ * D
+    MOVE.B    #$51,(A1)+ * Q
+    MOVE.B    #$0,(A1)+ 
     JSR EA_ADDQ
 
 OPCODE_0110
@@ -309,7 +396,7 @@ EA_BLE
 
 *condition to branch to opcode---------------------------------
 COMPARE
-    ADD.L   #2,D7
+    ADD.L   #4,D7
     CMP     D6,D7
     BLT     OpCodeInterpreter
 *_____________PRINTING_______________________
