@@ -138,23 +138,96 @@ OPCODE_0010
     BRA        EA_MOVEL    
     
 OPCODE_0011
+    MOVE.L     #%001,D4
+    MOVE.W     (A0),D5
+    LSL.W      #7,D5 
+    LSR.W      #7,D5 
+    LSR.W      #6,D5
+    
+    CMP.W      D4,D5
+    BEQ        EA_MOVEAW 
+    BRA        EA_MOVEW   
 
 OPCODE_0100
+    MOVE.W     (A0),D5
+    
+    MOVE.L     #%0100111001110001,D4 *machine code for NOP
+    CMP.W      D4,D5
+    BEQ        EA_NOP
 
+    CLR.L      D4
+    MOVE.L     #%01000010,D4 
+    LSR.W      #8,D5
+    CMP.W      D4,D5
+    BEQ        EA_CLR
+    
+    CLR.L      D4
+    CLR.L      D5
+    MOVE.W     (A0),D5
+    MOVE.L     #%0100111001110101,D4
+    CMP.W      D4,D5
+    BEQ        EA_RTS
+    
+    
+    CLR.L      D4
+    MOVE.L     #%0100111010,D4
+    LSR        #6,D5
+    CMP.W      D4,D5
+    BEQ        EA_JSR
+    
+    CLR.L      D4
+    CLR.L      D5
+    MOVE.W     (A0),D5
+    
+    MOVE.L     #%111,D4
+    LSL.W      #7,D5 
+    LSR.W      #7,D5 
+    LSR.W      #6,D5
+    
+    CMP.W      D4,D5
+    BEQ        EA_LEA
+    BRA        EA_MOVEM
+    
+    
+    
+ 
 OPCODE_0101
+    JSR EA_ADDQ
 
 OPCODE_0110
-
+    MOVE.W     (A0),D5
+    LSR.L      #7,D5
+    
+    MOVE.L     #%01100100,D4 *BCC
+    CMP.W      D4,D5
+    BEQ        EA_BCC
+    
+    CLR.L      D4
+    MOVE.L     #%01101110,D4 *BGT
+    CMP.W      D4,D5
+    BEQ        EA_BGT
+    
+    BRA        EA_BLE
+    
 OPCODE_0111
-
+    JSR EA_MOVEQ
 OPCODE_1000
+    MOVE.L     #%011,D4
+    MOVE.W     (A0),D5
+    LSL.W      #7,D5 
+    LSR.W      #7,D5 
+    LSR.W      #6,D5
+    
+    CMP.W      D4,D5
+    BEQ        EA_DIVU 
+    BRA        EA_OR   
 
 OPCODE_1001
-
+    JSR EA_SUB
 OPCODE_1010
 
 OPCODE_1011
-
+    JSR EA_CMP
 OPCODE_1100
 
 OPCODE_1101
@@ -172,6 +245,47 @@ EA_MOVEB
 EA_MOVEL
     
 EA_MOVEAL
+
+EA_MOVEAW
+   
+
+EA_MOVEW
+
+EA_ADDQ
+
+EA_SUB
+
+EA_CMP
+
+EA_MOVEQ
+
+EA_DIVU
+    
+EA_OR
+    
+    
+EA_NOP
+    *move.l (A0),D6
+EA_CLR
+    
+    
+EA_RTS
+    *move.l (A0),D6
+    
+EA_JSR
+    *move.l (A0),D6
+    
+EA_LEA
+    move.l (A0),D6
+
+EA_MOVEM
+
+EA_BCC
+
+
+EA_BGT
+
+EA_BLE
    
 *--------------------------------------------------------------
 
