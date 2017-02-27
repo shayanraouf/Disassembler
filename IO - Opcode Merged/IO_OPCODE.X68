@@ -237,60 +237,81 @@ OPCODE_1110
 
 OPCODE_1111
 
+
+
 *Effective Addressing Section----------------------------------
 EA_ADDI
-      
+    lsl.w   0
+    BRA COMPARE
 EA_MOVEB
-    
+    lsl.w   0
+    BRA COMPARE
 EA_MOVEL
-    
+    lsl.w   0
+    BRA COMPARE
 EA_MOVEAL
-
+    lsl.w   0
+    BRA COMPARE
 EA_MOVEAW
-   
+    lsl.w   0
+    BRA COMPARE
 
 EA_MOVEW
-
+    lsl.w   0
+    BRA COMPARE
 EA_ADDQ
-
+    lsl.w   0
+    BRA COMPARE
 EA_SUB
-
+    lsl.w   0
+    BRA COMPARE
 EA_CMP
-
+    lsl.w   0
+    BRA COMPARE
 EA_MOVEQ
-
+    lsl.w   0
+    BRA COMPARE
 EA_DIVU
-    
+    lsl.w   0
+    BRA COMPARE
 EA_OR
-    
-    
+    lsl.w   0
+    BRA COMPARE
 EA_NOP
-    *move.l (A0),D6
+    lsl.w   0
+    BRA COMPARE
 EA_CLR
-    
-    
+    lsl.w   0
+    BRA COMPARE
 EA_RTS
-    *move.l (A0),D6
-    
+   lsl.w   0
+   BRA COMPARE 
 EA_JSR
-    *move.l (A0),D6
-    
+    lsl.w   0
+    BRA COMPARE
 EA_LEA
-    move.l (A0),D6
-
+    lsl.w   0
+    BRA COMPARE
 EA_MOVEM
-
+    lsl.w   0
+    BRA COMPARE
 EA_BCC
-
-
+    lsl.w   0
+    BRA COMPARE
 EA_BGT
-
+    lsl.w   0
+    BRA COMPARE
 EA_BLE
-   
+    lsl.w   0
+    BRA COMPARE
 *--------------------------------------------------------------
 
 
-
+*condition to branch to opcode---------------------------------
+COMPARE
+    ADD.L   #2,D7
+    CMP     D6,D7
+    BLT     OpCodeInterpreter
 *_____________PRINTING_______________________
 *THE IDEA HERE IS THAT I PRINT A BYTE FROM OP-CODES,PRINT 3 BYTES FROM
 *EFFECTIVE ADDRESSING AND REPEAT TILL I'VE FINISHED
