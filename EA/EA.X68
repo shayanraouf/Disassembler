@@ -15,7 +15,7 @@
     * MODE: 010  Xn: reg
 *Immediate Data                                     (MOVE.W #$1234, $8000)
     * MODE: 111  Xn: 100
-*Address Register Indirect with Post incrementing   (MOVE.W (A0)+, D0)
+*Address Register Indirect with Post incrementing   (MOVE.W (A1)+, D0)
     * MODE: 011  Xn: reg
 *Address Register Indirect with Pre decrementing    (MOVE.W -(A0), D0)
     * MODE: 100  Xn: reg
@@ -77,9 +77,9 @@ START
 * Start EA
 *-----------------------------------------------------------
 FIRST_EA
-        MOVE.B  #',',   (A0)+           ; move , character to A0
+        MOVE.B  #',',   (A1)+           ; move , character to A0
 SECOND_EA
-        MOVE.W  #00,    (A0)+           ; #00 indicates end of buffer
+        MOVE.W  #00,    (A1)+           ; #00 indicates end of buffer
         ADD.L   #1,     COUNTER_PRINT   ; increment counter by one
 
 *-----------------------------------------------------------
@@ -99,7 +99,7 @@ MODE_TABLE
 * Data Register Direct
 *-----------------------------------------------------------
 MODE_DRD
-        MOVE.B  #'D', (A0)+       ; move D character to A0
+        MOVE.B  #'D', (A1)+       ; move D character to A0
         ** TODO
         **determine Register
         **set Register
@@ -111,7 +111,7 @@ MODE_DRD
 * Address Register Direct
 *-----------------------------------------------------------
 MODE_ARD
-        MOVE.B  #'A', (A0)+    ; move A character to
+        MOVE.B  #'A', (A1)+    ; move A character to
         ** TODO
         **determine Register
         **set Register
@@ -123,12 +123,12 @@ MODE_ARD
 * Address Register Indirect
 *-----------------------------------------------------------
 MODE_ARI
-        MOVE.B #'(', (A0)+     ; move ( character to A0
-        MOVE.B #'A', (A0)+     ; move A character to A0
+        MOVE.B #'(', (A1)+     ; move ( character to A0
+        MOVE.B #'A', (A1)+     ; move A character to A0
         ** TODO 
         **determine Register
         **set Register
-        MOVE.B #')', (A0)+     ; move ) character to A0
+        MOVE.B #')', (A1)+     ; move ) character to A0
         RTS
         
 *-----------------------------------------------------------
@@ -137,13 +137,13 @@ MODE_ARI
 * Address Register Indirect with Post Incrementing
 *-----------------------------------------------------------
 MODE_ARIPI
-        MOVE.B #'(', (A0)+     ; move ( character to A0
-        MOVE.B #'A', (A0)+     ; move A character to A0
+        MOVE.B #'(', (A1)+     ; move ( character to A0
+        MOVE.B #'A', (A1)+     ; move A character to A0
         ** TODO 
         **determine Register
         **set Register
-        MOVE.B #')', (A0)+     ; move ) character to A0
-        MOVE.B #'+', (A0)+     ; move + character to A0
+        MOVE.B #')', (A1)+     ; move ) character to A0
+        MOVE.B #'+', (A1)+     ; move + character to A0
         RTS
         
 *-----------------------------------------------------------
@@ -152,13 +152,13 @@ MODE_ARIPI
 * Address Register Indirect with Pre Decrementing
 *-----------------------------------------------------------
 MODE_ARIPD
-        MOVE.B #'-', (A0)+     ; move - character to A0
-        MOVE.B #'(', (A0)+     ; move ( character to A0
-        MOVE.B #'A', (A0)+     ; move A character to A0
+        MOVE.B #'-', (A1)+     ; move - character to A0
+        MOVE.B #'(', (A1)+     ; move ( character to A0
+        MOVE.B #'A', (A1)+     ; move A character to A0
         ** TODO         
         **determine Register
         **set Register
-        MOVE.B #')', (A0)+     ; move ) character to A0
+        MOVE.B #')', (A1)+     ; move ) character to A0
         RTS
         
 *-----------------------------------------------------------
@@ -201,7 +201,7 @@ REG_TABLE_ID_AA
 *-----------------------------------------------------------       
 REG_ZERO
         ** TODO 
-        MOVE.B #'0', (A0)+     ; move 0 character to A0
+        MOVE.B #'0', (A1)+     ; move 0 character to A0
         RTS
     
 *-----------------------------------------------------------
@@ -209,7 +209,7 @@ REG_ZERO
 *-----------------------------------------------------------       
 REG_ONE
         ** TODO 
-        MOVE.B #'1', (A0)+     ; move 1 character to A0
+        MOVE.B #'1', (A1)+     ; move 1 character to A0
         RTS
     
 *-----------------------------------------------------------
@@ -217,7 +217,7 @@ REG_ONE
 *-----------------------------------------------------------       
 REG_TWO
         ** TODO 
-        MOVE.B #'2', (A0)+     ; move 2 character to A0
+        MOVE.B #'2', (A1)+     ; move 2 character to A0
         RTS
     
 *-----------------------------------------------------------
@@ -225,7 +225,7 @@ REG_TWO
 *-----------------------------------------------------------       
 REG_THREE
         ** TODO 
-        MOVE.B #'3', (A0)+     ; move 3 character to A0
+        MOVE.B #'3', (A1)+     ; move 3 character to A0
         RTS
     
 *-----------------------------------------------------------
@@ -233,7 +233,7 @@ REG_THREE
 *-----------------------------------------------------------       
 REG_FOUR
         ** TODO 
-        MOVE.B #'4', (A0)+     ; move 4 character to A0
+        MOVE.B #'4', (A1)+     ; move 4 character to A0
         RTS
     
 *-----------------------------------------------------------
@@ -241,7 +241,7 @@ REG_FOUR
 *-----------------------------------------------------------       
 REG_FIVE
         ** TODO 
-        MOVE.B #'5', (A0)+     ; move 5 character to A0
+        MOVE.B #'5', (A1)+     ; move 5 character to A0
         RTS
     
 *-----------------------------------------------------------
@@ -249,7 +249,7 @@ REG_FIVE
 *-----------------------------------------------------------       
 REG_SIX
         ** TODO 
-        MOVE.B #'6', (A0)+     ; move 6 character to A0
+        MOVE.B #'6', (A1)+     ; move 6 character to A0
         RTS
     
 *-----------------------------------------------------------
@@ -257,14 +257,14 @@ REG_SIX
 *-----------------------------------------------------------       
 REG_SEVEN
         ** TODO 
-        MOVE.B #'7', (A0)+     ; move 7 character to A0
+        MOVE.B #'7', (A1)+     ; move 7 character to A0
         RTS
 
 *-----------------------------------------------------------
 * Long      [001]
 *-----------------------------------------------------------  
 REG_ABS_LONG
-        MOVE.B #'$', (A0)+     ; move $ character to A0
+        MOVE.B #'$', (A1)+     ; move $ character to A0
         ** TODO - finish branch options
         RTS
 
@@ -272,7 +272,7 @@ REG_ABS_LONG
 * Word      [000]
 *----------------------------------------------------------- 
 REG_ABS_WORD
-        MOVE.B #'$', (A0)+     ; move $ character to A0
+        MOVE.B #'$', (A1)+     ; move $ character to A0
         ** TODO - finish branch options
         RTS
         
@@ -280,8 +280,8 @@ REG_ABS_WORD
 * Immediate [100]
 *----------------------------------------------------------- 
 REG_IMM_DATA
-        MOVE.B #'#', (A0)+     ; move # character to A0
-        MOVE.B #'$', (A0)+     ; move $ character to A0       
+        MOVE.B #'#', (A1)+     ; move # character to A0
+        MOVE.B #'$', (A1)+     ; move $ character to A0       
         ** TODO - finish branch options
         RTS
 
@@ -290,6 +290,7 @@ REG_IMM_DATA
 * Put variables and constants here
 
     END    START        ; last line of source
+
 
 
 *~Font name~Courier New~

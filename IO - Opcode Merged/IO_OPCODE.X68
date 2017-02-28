@@ -444,6 +444,113 @@ EA_BGT
 EA_BLT
     lsl.w   0
     BRA COMPARE
+    
+
+*-----------------------------------------------------------
+* Register Table for: 
+* numbers 0-7
+*-----------------------------------------------------------
+EA_REG_TABLE
+        JMP     EA_REG_ZERO
+        JMP     EA_REG_ONE
+        JMP     EA_REG_TWO
+        JMP     EA_REG_THREE
+        JMP     EA_REG_FOUR
+        JMP     EA_REG_FIVE
+        JMP     EA_REG_SIX
+        JMP     EA_REG_SEVEN
+
+*-----------------------------------------------------------
+* Register Table for: 
+* Absolute Long/Word Address and Immediate Data
+*-----------------------------------------------------------
+EA_REG_TABLE_ID_AA
+        JMP     EA_REG_ABS_LONG
+        JMP     EA_REG_ABS_WORD
+        JMP     EA_REG_IMM_DATA
+        ** TODO - include invalid options
+
+*-----------------------------------------------------------
+* Register Zero  [000]
+*-----------------------------------------------------------       
+EA_REG_ZERO
+        MOVE.B #'0', (A1)+     ; move 0 character to A1
+        RTS
+    
+*-----------------------------------------------------------
+* Register One   [001]
+*-----------------------------------------------------------       
+EA_REG_ONE
+        MOVE.B #'1', (A1)+     ; move 1 character to A1
+        RTS
+    
+*-----------------------------------------------------------
+* Register Two   [010]
+*-----------------------------------------------------------       
+EA_REG_TWO
+        MOVE.B #'2', (A1)+     ; move 2 character to A1
+        RTS
+    
+*-----------------------------------------------------------
+* Register Three [011]
+*-----------------------------------------------------------       
+EA_REG_THREE
+        MOVE.B #'3', (A1)+     ; move 3 character to A1
+        RTS
+    
+*-----------------------------------------------------------
+* Register Four  [100]
+*-----------------------------------------------------------       
+EA_REG_FOUR
+        MOVE.B #'4', (A1)+     ; move 4 character to A1
+        RTS
+    
+*-----------------------------------------------------------
+* Register Five  [101]
+*-----------------------------------------------------------       
+EA_REG_FIVE
+        MOVE.B #'5', (A1)+     ; move 5 character to A1
+        RTS
+    
+*-----------------------------------------------------------
+* Register Six   [110]
+*-----------------------------------------------------------       
+EA_REG_SIX
+        MOVE.B #'6', (A1)+     ; move 6 character to A1
+        RTS
+    
+*-----------------------------------------------------------
+* Register Seven [111]
+*-----------------------------------------------------------       
+EA_REG_SEVEN
+        MOVE.B #'7', (A1)+     ; move 7 character to A1
+        RTS
+
+*-----------------------------------------------------------
+* Long      [001]
+*-----------------------------------------------------------  
+EA_REG_ABS_LONG
+        MOVE.B #'$', (A1)+     ; move $ character to A1
+        ** TODO - finish branch options
+        RTS
+
+*-----------------------------------------------------------
+* Word      [000]
+*----------------------------------------------------------- 
+EA_REG_ABS_WORD
+        MOVE.B #'$', (A1)+     ; move $ character to A1
+        ** TODO - finish branch options
+        RTS
+        
+*-----------------------------------------------------------
+* Immediate [100]
+*----------------------------------------------------------- 
+EA_REG_IMM_DATA
+        MOVE.B #'#', (A1)+     ; move # character to A1
+        MOVE.B #'$', (A1)+     ; move $ character to A1       
+        ** TODO - finish branch options
+        RTS
+
 *--------------------------------------------------------------
 
 
@@ -549,6 +656,7 @@ START_ADDR  DC.B 'Enter Starting Address (Between $00004000 && $00FF0000):',0
 END_ADDR  DC.B 'Enter Ending Address (Between $00004000 && $00FF0000):',0
 INVALID_INPUT_MES    DC.B    'INVALID INPUT, TRY AGAIN',CR,LF,0
     END    START        ; last line of source
+
 
 *~Font name~Courier New~
 *~Font size~10~
