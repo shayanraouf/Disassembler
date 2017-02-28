@@ -4,6 +4,7 @@
 * Date       : TODAY
 * Description: I/O
 *-----------------------------------------------------------
+addr1     EQU     $4000 
     ORG    $1000
 START:                  ; first instruction of program
 *D2-D3 holds addresses
@@ -88,7 +89,9 @@ END_LOOP
 *______________________YOUR CODE STARTS HERE!!!!!!!!!!___________________
 
     MOVEA.L     #$00FFE000,A1 
+    MOVE.L     #0,D0
 OpCodeInterpreter
+    ADD.L       #1,D0
     MOVEA.L     D7,A0
     MOVEM.L     D1-D7/A2-A6,-(SP)       ; push unused registers to stack
     
@@ -664,16 +667,20 @@ COMPARE
 *EFFECTIVE ADDRESSING AND REPEAT TILL I'VE FINISHED
                 MOVEA.L         #$00FFE000,A4
                 MOVE.L          #0,D5
-                MOVE.L          #2,D6   *HOLDS THE NUMBER OF INSTRUCTIONS, TO INDICATE HOW MANY TIMES TO PRINT
+                MOVE.L          D0,D6   *HOLDS THE NUMBER OF INSTRUCTIONS, TO INDICATE HOW MANY TIMES TO PRINT
+                CLR.L           D0
+                MOVE.L          #3,D0
 PRINTINGLOOP    CMP.L           D5,D6   *IF NOTHING VALID HAS BEEN READ IN, THAT COUNTER SHOULD BE 0
                 BEQ             END
                 
+                
+           
                 MOVEA.L         A4,A1
                 MOVE.B          #14,D0          *PRINTS THE TRANSLATED OP-CODE
                 TRAP            #15
                 *LEAVING SPACE TO PRINT TRANSLATED EA
-                
-                
+
+                               
                 
 INCREMENT       CMP.B           #$00,(A4)         *MOVES A4 ADDRESS TO THE NEXT TRANSLATED OP-CODE
                 BEQ             END_INSTRUCTION   *BY MOVING A4'S ADDRESS UP BYTE BY BYTE TILL AFTER 00, THE BREAK POINT
@@ -748,14 +755,19 @@ END
 * Put variables and constants here
 CR      EQU     $0D
 LF      EQU     $0A
+
+NEW_LINE DC.B   '_',CR,LF
+
 INTRO   DC.B    'They call us Lil Bits.',CR,LF
         DC.B    'You abouts to get',CR,LF
         DC.B    'disassmbled',CR,LF,0
+
 RESTART_MSG DC.B    'INVALID PUT, WOULD YOU LIKE TO END THE PROGRAM OR TRY AGAIN? (ENTER Y TO RESTART)',0
 START_ADDR  DC.B 'Enter Starting Address (Between $00004000 && $00FF0000):',0
 END_ADDR  DC.B 'Enter Ending Address (Between $00004000 && $00FF0000):',0
 INVALID_INPUT_MES    DC.B    'INVALID INPUT, TRY AGAIN',CR,LF,0
     END    START        ; last line of source
+
 
 
 *~Font name~Courier New~
