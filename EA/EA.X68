@@ -77,7 +77,7 @@ START
 * Start EA
 *-----------------------------------------------------------
 FIRST_EA
-        MOVE.B  #',',   (A1)+           ; move , character to A0
+        MOVE.B  #',',   (A1)+           ; move , character to A1
 SECOND_EA
         MOVE.W  #00,    (A1)+           ; #00 indicates end of buffer
         ADD.L   #1,     COUNTER_PRINT   ; increment counter by one
@@ -85,24 +85,25 @@ SECOND_EA
 *-----------------------------------------------------------
 * Mode Table
 *-----------------------------------------------------------
-MODE_TABLE
-        JMP     MODE_DRD        ; Data Register Direct
-        JMP     MODE_ARD        ; Address Register Direct
-        JMP     MODE_ARI        ; Address Register Indirect
-        JMP     MODE_ARIPI      ; Address Register Indirect with Post Incrementing
-        JMP     MODE_ARIPD      ; Address Register Indirect with Pre Decrementing
-        JMP     MODE_ID_AA      ; Absolute Long/Word Address and Immediate Data
+EA_MODE_TABLE
+        JMP     EA_MODE_DRD        ; Data Register Direct
+        JMP     EA_MODE_ARD        ; Address Register Direct
+        JMP     EA_MODE_ARI        ; Address Register Indirect
+        JMP     EA_MODE_ARIPI      ; Address Register Indirect with Post Incrementing
+        JMP     EA_MODE_ARIPD      ; Address Register Indirect with Pre Decrementing
+        JMP     EA_MODE_ID_AA      ; Absolute Long/Word Address and Immediate Data
 
 *-----------------------------------------------------------
 * Mode: 000     DN         
 * [Xn: reg]   
 * Data Register Direct
 *-----------------------------------------------------------
-MODE_DRD
-        MOVE.B  #'D', (A1)+       ; move D character to A0
-        ** TODO
-        **determine Register
-        **set Register
+EA_MODE_DRD
+        MOVE.B  #'D', (A1)+       ; move D character to A1
+        ** TODO: Shift bits from A0 and store in D2
+        LEA     EA_REG_TABLE, A3
+        MULU    #6, D2
+        JMP     0(A3, D2)
         RTS
         
 *-----------------------------------------------------------
@@ -110,11 +111,12 @@ MODE_DRD
 * [Xn: reg]   
 * Address Register Direct
 *-----------------------------------------------------------
-MODE_ARD
+EA_MODE_ARD
         MOVE.B  #'A', (A1)+    ; move A character to
-        ** TODO
-        **determine Register
-        **set Register
+        ** TODO: Shift bits from A0 and store in D2
+        LEA     EA_REG_TABLE, A3
+        MULU    #6, D2
+        JMP     0(A3, D2)
         RTS
         
 *-----------------------------------------------------------
@@ -122,13 +124,14 @@ MODE_ARD
 * [Xn: reg]   
 * Address Register Indirect
 *-----------------------------------------------------------
-MODE_ARI
-        MOVE.B #'(', (A1)+     ; move ( character to A0
-        MOVE.B #'A', (A1)+     ; move A character to A0
-        ** TODO 
-        **determine Register
-        **set Register
-        MOVE.B #')', (A1)+     ; move ) character to A0
+EA_MODE_ARI
+        MOVE.B #'(', (A1)+     ; move ( character to A1
+        MOVE.B #'A', (A1)+     ; move A character to A1
+        ** TODO: Shift bits from A0 and store in D2
+        LEA     EA_REG_TABLE, A3
+        MULU    #6, D2
+        JMP     0(A3, D2)
+        MOVE.B #')', (A1)+     ; move ) character to A1
         RTS
         
 *-----------------------------------------------------------
@@ -136,14 +139,15 @@ MODE_ARI
 * [Xn: reg]   
 * Address Register Indirect with Post Incrementing
 *-----------------------------------------------------------
-MODE_ARIPI
-        MOVE.B #'(', (A1)+     ; move ( character to A0
-        MOVE.B #'A', (A1)+     ; move A character to A0
-        ** TODO 
-        **determine Register
-        **set Register
-        MOVE.B #')', (A1)+     ; move ) character to A0
-        MOVE.B #'+', (A1)+     ; move + character to A0
+EA_MODE_ARIPI
+        MOVE.B #'(', (A1)+     ; move ( character to A1
+        MOVE.B #'A', (A1)+     ; move A character to A1
+        ** TODO: Shift bits from A0 and store in D2
+        LEA     EA_REG_TABLE, A3
+        MULU    #6, D2
+        JMP     0(A3, D2)
+        MOVE.B #')', (A1)+     ; move ) character to A1
+        MOVE.B #'+', (A1)+     ; move + character to A1
         RTS
         
 *-----------------------------------------------------------
@@ -151,14 +155,15 @@ MODE_ARIPI
 * [Xn: reg]   
 * Address Register Indirect with Pre Decrementing
 *-----------------------------------------------------------
-MODE_ARIPD
-        MOVE.B #'-', (A1)+     ; move - character to A0
-        MOVE.B #'(', (A1)+     ; move ( character to A0
-        MOVE.B #'A', (A1)+     ; move A character to A0
-        ** TODO         
-        **determine Register
-        **set Register
-        MOVE.B #')', (A1)+     ; move ) character to A0
+EA_MODE_ARIPD
+        MOVE.B #'-', (A1)+     ; move - character to A1
+        MOVE.B #'(', (A1)+     ; move ( character to A1
+        MOVE.B #'A', (A1)+     ; move A character to A1
+        ** TODO: Shift bits from A0 and store in D2
+        LEA     EA_REG_TABLE, A3
+        MULU    #6, D2
+        JMP     0(A3, D2)
+        MOVE.B #')', (A1)+     ; move ) character to A1
         RTS
         
 *-----------------------------------------------------------
@@ -166,122 +171,116 @@ MODE_ARIPD
 * [Xn: 001; Xn: 000; Xn: 100]   
 * Absolute Long/Word Address and Immediate Data
 *-----------------------------------------------------------
-MODE_ID_AA
-        ** TODO 
-        **determine Register
-        **set Register through separate table: REG_TABLE_ID_AA
+EA_MODE_ID_AA
+        ** TODO: Shift bits from A0 and store in D2
+        LEA     EA_REG_TABLE, A3
+        MULU    #6, D2
+        JMP     0(A3, D2)
+        **set Register through separate table: EA_REG_TABLE_ID_AA
         RTS
 
 *-----------------------------------------------------------
 * Register Table for: 
 * numbers 0-7
 *-----------------------------------------------------------
-REG_TABLE
-        JMP     REG_ZERO
-        JMP     REG_ONE
-        JMP     REG_TWO
-        JMP     REG_THREE
-        JMP     REG_FOUR
-        JMP     REG_FIVE
-        JMP     REG_SIX
-        JMP     REG_SEVEN
+EA_REG_TABLE
+        JMP     EA_REG_ZERO
+        JMP     EA_REG_ONE
+        JMP     EA_REG_TWO
+        JMP     EA_REG_THREE
+        JMP     EA_REG_FOUR
+        JMP     EA_REG_FIVE
+        JMP     EA_REG_SIX
+        JMP     EA_REG_SEVEN
 
 *-----------------------------------------------------------
 * Register Table for: 
 * Absolute Long/Word Address and Immediate Data
 *-----------------------------------------------------------
-REG_TABLE_ID_AA
-        JMP     REG_ABS_LONG
-        JMP     REG_ABS_WORD
-        JMP     REG_IMM_DATA
+EA_REG_TABLE_ID_AA
+        JMP     EA_REG_ABS_LONG
+        JMP     EA_REG_ABS_WORD
+        JMP     EA_REG_IMM_DATA
         ** TODO - include invalid options
 
 *-----------------------------------------------------------
 * Register Zero  [000]
 *-----------------------------------------------------------       
-REG_ZERO
-        ** TODO 
-        MOVE.B #'0', (A1)+     ; move 0 character to A0
+EA_REG_ZERO
+        MOVE.B #'0', (A1)+     ; move 0 character to A1
         RTS
     
 *-----------------------------------------------------------
 * Register One   [001]
 *-----------------------------------------------------------       
-REG_ONE
-        ** TODO 
-        MOVE.B #'1', (A1)+     ; move 1 character to A0
+EA_REG_ONE
+        MOVE.B #'1', (A1)+     ; move 1 character to A1
         RTS
     
 *-----------------------------------------------------------
 * Register Two   [010]
 *-----------------------------------------------------------       
-REG_TWO
-        ** TODO 
-        MOVE.B #'2', (A1)+     ; move 2 character to A0
+EA_REG_TWO
+        MOVE.B #'2', (A1)+     ; move 2 character to A1
         RTS
     
 *-----------------------------------------------------------
 * Register Three [011]
 *-----------------------------------------------------------       
-REG_THREE
-        ** TODO 
-        MOVE.B #'3', (A1)+     ; move 3 character to A0
+EA_REG_THREE
+        MOVE.B #'3', (A1)+     ; move 3 character to A1
         RTS
     
 *-----------------------------------------------------------
 * Register Four  [100]
 *-----------------------------------------------------------       
-REG_FOUR
-        ** TODO 
-        MOVE.B #'4', (A1)+     ; move 4 character to A0
+EA_REG_FOUR
+        MOVE.B #'4', (A1)+     ; move 4 character to A1
         RTS
     
 *-----------------------------------------------------------
 * Register Five  [101]
 *-----------------------------------------------------------       
-REG_FIVE
-        ** TODO 
-        MOVE.B #'5', (A1)+     ; move 5 character to A0
+EA_REG_FIVE
+        MOVE.B #'5', (A1)+     ; move 5 character to A1
         RTS
     
 *-----------------------------------------------------------
 * Register Six   [110]
 *-----------------------------------------------------------       
-REG_SIX
-        ** TODO 
-        MOVE.B #'6', (A1)+     ; move 6 character to A0
+EA_REG_SIX
+        MOVE.B #'6', (A1)+     ; move 6 character to A1
         RTS
     
 *-----------------------------------------------------------
 * Register Seven [111]
 *-----------------------------------------------------------       
-REG_SEVEN
-        ** TODO 
-        MOVE.B #'7', (A1)+     ; move 7 character to A0
+EA_REG_SEVEN
+        MOVE.B #'7', (A1)+     ; move 7 character to A1
         RTS
 
 *-----------------------------------------------------------
 * Long      [001]
 *-----------------------------------------------------------  
-REG_ABS_LONG
-        MOVE.B #'$', (A1)+     ; move $ character to A0
+EA_REG_ABS_LONG
+        MOVE.B #'$', (A1)+     ; move $ character to A1
         ** TODO - finish branch options
         RTS
 
 *-----------------------------------------------------------
 * Word      [000]
 *----------------------------------------------------------- 
-REG_ABS_WORD
-        MOVE.B #'$', (A1)+     ; move $ character to A0
+EA_REG_ABS_WORD
+        MOVE.B #'$', (A1)+     ; move $ character to A1
         ** TODO - finish branch options
         RTS
         
 *-----------------------------------------------------------
 * Immediate [100]
 *----------------------------------------------------------- 
-REG_IMM_DATA
-        MOVE.B #'#', (A1)+     ; move # character to A0
-        MOVE.B #'$', (A1)+     ; move $ character to A0       
+EA_REG_IMM_DATA
+        MOVE.B #'#', (A1)+     ; move # character to A1
+        MOVE.B #'$', (A1)+     ; move $ character to A1       
         ** TODO - finish branch options
         RTS
 

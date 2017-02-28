@@ -380,6 +380,8 @@ OPCODE_1111
 
 
 *Effective Addressing Section----------------------------------
+*--------------------------------------------------------------
+*--------------------------------------------------------------
 EA_ADDI
     lsl.w   0
     BRA COMPARE
@@ -445,6 +447,103 @@ EA_BLT
     lsl.w   0
     BRA COMPARE
     
+*-----------------------------------------------------------
+* Mode Table
+*-----------------------------------------------------------
+EA_MODE_TABLE
+        JMP     EA_MODE_DRD        ; Data Register Direct
+        JMP     EA_MODE_ARD        ; Address Register Direct
+        JMP     EA_MODE_ARI        ; Address Register Indirect
+        JMP     EA_MODE_ARIPI      ; Address Register Indirect with Post Incrementing
+        JMP     EA_MODE_ARIPD      ; Address Register Indirect with Pre Decrementing
+        JMP     EA_MODE_ID_AA      ; Absolute Long/Word Address and Immediate Data
+
+*-----------------------------------------------------------
+* Mode: 000     DN         
+* [Xn: reg]   
+* Data Register Direct
+*-----------------------------------------------------------
+EA_MODE_DRD
+        MOVE.B  #'D', (A1)+       ; move D character to A1
+        ** TODO: Shift bits from A0 and store in D2
+        LEA     EA_REG_TABLE, A3
+        MULU    #6, D2
+        JMP     0(A3, D2)
+        RTS
+        
+*-----------------------------------------------------------
+* Mode: 001     AN         
+* [Xn: reg]   
+* Address Register Direct
+*-----------------------------------------------------------
+EA_MODE_ARD
+        MOVE.B  #'A', (A1)+    ; move A character to
+        ** TODO: Shift bits from A0 and store in D2
+        LEA     EA_REG_TABLE, A3
+        MULU    #6, D2
+        JMP     0(A3, D2)
+        RTS
+        
+*-----------------------------------------------------------
+* Mode: 010     (AN)        
+* [Xn: reg]   
+* Address Register Indirect
+*-----------------------------------------------------------
+EA_MODE_ARI
+        MOVE.B #'(', (A1)+     ; move ( character to A1
+        MOVE.B #'A', (A1)+     ; move A character to A1
+        ** TODO: Shift bits from A0 and store in D2
+        LEA     EA_REG_TABLE, A3
+        MULU    #6, D2
+        JMP     0(A3, D2)
+        MOVE.B #')', (A1)+     ; move ) character to A1
+        RTS
+        
+*-----------------------------------------------------------
+* Mode: 011     (AN)+       
+* [Xn: reg]   
+* Address Register Indirect with Post Incrementing
+*-----------------------------------------------------------
+EA_MODE_ARIPI
+        MOVE.B #'(', (A1)+     ; move ( character to A1
+        MOVE.B #'A', (A1)+     ; move A character to A1
+        ** TODO: Shift bits from A0 and store in D2
+        LEA     EA_REG_TABLE, A3
+        MULU    #6, D2
+        JMP     0(A3, D2)
+        MOVE.B #')', (A1)+     ; move ) character to A1
+        MOVE.B #'+', (A1)+     ; move + character to A1
+        RTS
+        
+*-----------------------------------------------------------
+* Mode: 100     -(AN)       
+* [Xn: reg]   
+* Address Register Indirect with Pre Decrementing
+*-----------------------------------------------------------
+EA_MODE_ARIPD
+        MOVE.B #'-', (A1)+     ; move - character to A1
+        MOVE.B #'(', (A1)+     ; move ( character to A1
+        MOVE.B #'A', (A1)+     ; move A character to A1
+        ** TODO: Shift bits from A0 and store in D2
+        LEA     EA_REG_TABLE, A3
+        MULU    #6, D2
+        JMP     0(A3, D2)
+        MOVE.B #')', (A1)+     ; move ) character to A1
+        RTS
+        
+*-----------------------------------------------------------
+* Mode: 111     (xxx).L; (xxx).W; #<data> 
+* [Xn: 001; Xn: 000; Xn: 100]   
+* Absolute Long/Word Address and Immediate Data
+*-----------------------------------------------------------
+EA_MODE_ID_AA
+        ** TODO: Shift bits from A0 and store in D2
+        LEA     EA_REG_TABLE, A3
+        MULU    #6, D2
+        JMP     0(A3, D2)
+        **set Register through separate table: EA_REG_TABLE_ID_AA
+        RTS
+
 
 *-----------------------------------------------------------
 * Register Table for: 
@@ -550,7 +649,8 @@ EA_REG_IMM_DATA
         MOVE.B #'$', (A1)+     ; move $ character to A1       
         ** TODO - finish branch options
         RTS
-
+*END OF EA-----------------------------------------------
+*--------------------------------------------------------------
 *--------------------------------------------------------------
 
 
