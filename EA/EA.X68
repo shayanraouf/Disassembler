@@ -1,7 +1,7 @@
 *-----------------------------------------------------------
-* Title      :  Addressing
+* Title      :  EA
 * Written by :  John Fitzgerald
-* Date       :  2-10-17
+* Date       :  2-24-17
 * Description:  Decode EA from Opcode and prepare operands 
 *               for display.
 
@@ -54,12 +54,11 @@
 *RTS
 *-----------------------------------------------------------
 
-
 *-----------------------------------------------------------
 * Beginning of EQUates section, just like #define in C.
 *-----------------------------------------------------------
-
-
+COUNTER_PRINT     DS.L    1
+COUNTER_EA        DS.B    1
 
 *-----------------------------------------------------------
 * Beginning of code segment.
@@ -77,22 +76,22 @@ START
 *-----------------------------------------------------------
 * Start EA
 *-----------------------------------------------------------
-** TODO - determine registers to use (for data and tables)
-**Clear data register(s) previously used
-**FIRST EA
-        *MOVE.B  #',', ()+     ; move , character to
-**SECOND EA
+FIRST_EA
+        MOVE.B  #',',   (A0)+           ; move , character to A0
+SECOND_EA
+        MOVE.W  #00,    (A0)+           ; #00 indicates end of buffer
+        ADD.L   #1,     COUNTER_PRINT   ; increment counter by one
 
 *-----------------------------------------------------------
 * Mode Table
 *-----------------------------------------------------------
 MODE_TABLE
-        JMP     MODE_DRD
-        JMP     MODE_ARD     
-        JMP     MODE_ARI
-        JMP     MODE_ARIPI     
-        JMP     MODE_ARIPD
-        JMP     MODE_ID_AA 
+        JMP     MODE_DRD        ; Data Register Direct
+        JMP     MODE_ARD        ; Address Register Direct
+        JMP     MODE_ARI        ; Address Register Indirect
+        JMP     MODE_ARIPI      ; Address Register Indirect with Post Incrementing
+        JMP     MODE_ARIPD      ; Address Register Indirect with Pre Decrementing
+        JMP     MODE_ID_AA      ; Absolute Long/Word Address and Immediate Data
 
 *-----------------------------------------------------------
 * Mode: 000     DN         
@@ -100,11 +99,11 @@ MODE_TABLE
 * Data Register Direct
 *-----------------------------------------------------------
 MODE_DRD
-        *MOVE.B  #'D',        ; move D character to
+        MOVE.B  #'D', (A0)+       ; move D character to A0
         ** TODO
         **determine Register
         **set Register
-        *RTS
+        RTS
         
 *-----------------------------------------------------------
 * Mode: 001     AN         
@@ -112,11 +111,11 @@ MODE_DRD
 * Address Register Direct
 *-----------------------------------------------------------
 MODE_ARD
-        *MOVE.B  #'A', ()+    ; move A character to
+        MOVE.B  #'A', (A0)+    ; move A character to
         ** TODO
         **determine Register
         **set Register
-        *RTS
+        RTS
         
 *-----------------------------------------------------------
 * Mode: 010     (AN)        
@@ -124,43 +123,43 @@ MODE_ARD
 * Address Register Indirect
 *-----------------------------------------------------------
 MODE_ARI
-        *MOVE.B #'(', ()+     ; move ( character to 
-        *MOVE.B #'A', ()+     ; move A character to
+        MOVE.B #'(', (A0)+     ; move ( character to A0
+        MOVE.B #'A', (A0)+     ; move A character to A0
         ** TODO 
         **determine Register
         **set Register
-        *MOVE.B #')', ()+     ; move ) character to
-        *RTS
+        MOVE.B #')', (A0)+     ; move ) character to A0
+        RTS
         
 *-----------------------------------------------------------
 * Mode: 011     (AN)+       
 * [Xn: reg]   
-* Address Register Indirect with Post incrementing
+* Address Register Indirect with Post Incrementing
 *-----------------------------------------------------------
 MODE_ARIPI
-        *MOVE.B #'(', ()+     ; move ( character to 
-        *MOVE.B #'A', ()+     ; move A character to
+        MOVE.B #'(', (A0)+     ; move ( character to A0
+        MOVE.B #'A', (A0)+     ; move A character to A0
         ** TODO 
         **determine Register
         **set Register
-        *MOVE.B #')', ()+     ; move ) character to
-        *MOVE.B #'+', ()+     ; move + character to
-        *RTS
+        MOVE.B #')', (A0)+     ; move ) character to A0
+        MOVE.B #'+', (A0)+     ; move + character to A0
+        RTS
         
 *-----------------------------------------------------------
 * Mode: 100     -(AN)       
 * [Xn: reg]   
-* Address Register Indirect with Pre decrementing
+* Address Register Indirect with Pre Decrementing
 *-----------------------------------------------------------
 MODE_ARIPD
-        *MOVE.B #'-', ()+     ; move - character to 
-        *MOVE.B #'(', ()+     ; move ( character to
-        *MOVE.B #'A', ()+     ; move A character to
+        MOVE.B #'-', (A0)+     ; move - character to A0
+        MOVE.B #'(', (A0)+     ; move ( character to A0
+        MOVE.B #'A', (A0)+     ; move A character to A0
         ** TODO         
         **determine Register
         **set Register
-        *MOVE.B #')', ()+     ; move ) character to
-        *RTS
+        MOVE.B #')', (A0)+     ; move ) character to A0
+        RTS
         
 *-----------------------------------------------------------
 * Mode: 111     (xxx).L; (xxx).W; #<data> 
@@ -171,7 +170,7 @@ MODE_ID_AA
         ** TODO 
         **determine Register
         **set Register through separate table: REG_TABLE_ID_AA
-        *RTS
+        RTS
 
 *-----------------------------------------------------------
 * Register Table for: 
@@ -202,95 +201,97 @@ REG_TABLE_ID_AA
 *-----------------------------------------------------------       
 REG_ZERO
         ** TODO 
-        *MOVE.B #'0', ()+     ; move 0 character to 
-        *RTS
+        MOVE.B #'0', (A0)+     ; move 0 character to A0
+        RTS
     
 *-----------------------------------------------------------
 * Register One   [001]
 *-----------------------------------------------------------       
 REG_ONE
         ** TODO 
-        *MOVE.B #'1', ()+     ; move 1 character to 
-        *RTS
+        MOVE.B #'1', (A0)+     ; move 1 character to A0
+        RTS
     
 *-----------------------------------------------------------
 * Register Two   [010]
 *-----------------------------------------------------------       
 REG_TWO
         ** TODO 
-        *MOVE.B #'2', ()+     ; move 2 character to 
-        *RTS
+        MOVE.B #'2', (A0)+     ; move 2 character to A0
+        RTS
     
 *-----------------------------------------------------------
 * Register Three [011]
 *-----------------------------------------------------------       
 REG_THREE
         ** TODO 
-        *MOVE.B #'3', ()+     ; move 3 character to 
-        *RTS
+        MOVE.B #'3', (A0)+     ; move 3 character to A0
+        RTS
     
 *-----------------------------------------------------------
 * Register Four  [100]
 *-----------------------------------------------------------       
 REG_FOUR
         ** TODO 
-        *MOVE.B #'4', ()+     ; move 4 character to 
-        *RTS
+        MOVE.B #'4', (A0)+     ; move 4 character to A0
+        RTS
     
 *-----------------------------------------------------------
 * Register Five  [101]
 *-----------------------------------------------------------       
 REG_FIVE
         ** TODO 
-        *MOVE.B #'5', ()+     ; move 5 character to 
-        *RTS
+        MOVE.B #'5', (A0)+     ; move 5 character to A0
+        RTS
     
 *-----------------------------------------------------------
 * Register Six   [110]
 *-----------------------------------------------------------       
 REG_SIX
         ** TODO 
-        *MOVE.B #'6', ()+     ; move 6 character to 
-        *RTS
+        MOVE.B #'6', (A0)+     ; move 6 character to A0
+        RTS
     
 *-----------------------------------------------------------
 * Register Seven [111]
 *-----------------------------------------------------------       
 REG_SEVEN
         ** TODO 
-        *MOVE.B #'7', ()+     ; move 7 character to 
-        *RTS
+        MOVE.B #'7', (A0)+     ; move 7 character to A0
+        RTS
 
 *-----------------------------------------------------------
 * Long      [001]
 *-----------------------------------------------------------  
 REG_ABS_LONG
-        *MOVE.B #'$', ()+     ; move $ character to
+        MOVE.B #'$', (A0)+     ; move $ character to A0
         ** TODO - finish branch options
-        *RTS
+        RTS
 
 *-----------------------------------------------------------
 * Word      [000]
 *----------------------------------------------------------- 
 REG_ABS_WORD
-        *MOVE.B #'$', ()+     ; move $ character to
+        MOVE.B #'$', (A0)+     ; move $ character to A0
         ** TODO - finish branch options
-        *RTS
+        RTS
         
 *-----------------------------------------------------------
 * Immediate [100]
 *----------------------------------------------------------- 
 REG_IMM_DATA
-        *MOVE.B #'#', ()+     ; move # character to
-        *MOVE.B #'$', ()+     ; move $ character to        
+        MOVE.B #'#', (A0)+     ; move # character to A0
+        MOVE.B #'$', (A0)+     ; move $ character to A0       
         ** TODO - finish branch options
-        *RTS
+        RTS
 
     SIMHALT             ; halt simulator
 
 * Put variables and constants here
 
     END    START        ; last line of source
+
+
 *~Font name~Courier New~
 *~Font size~10~
 *~Tab type~1~
