@@ -386,7 +386,14 @@ OPCODE_1111
 *--------------------------------------------------------------
 *--------------------------------------------------------------
 EA_ADDI
-    lsl.w   0
+    CLR.L     D4
+    CLR.L     D5
+    *MOVE.W   (A0)+,D4
+    MOVE.L    #$00000600,D4
+    MOVE.W   D4,D5
+    LSL.W    #8,D5
+    LSR.W    #8,D5
+    LSR.W    #6,D5
     BRA COMPARE
 EA_MOVEB
     lsl.w   0
@@ -767,6 +774,7 @@ START_ADDR  DC.B 'Enter Starting Address (Between $00004000 && $00FF0000):',0
 END_ADDR  DC.B 'Enter Ending Address (Between $00004000 && $00FF0000):',0
 INVALID_INPUT_MES    DC.B    'INVALID INPUT, TRY AGAIN',CR,LF,0
     END    START        ; last line of source
+
 
 
 
