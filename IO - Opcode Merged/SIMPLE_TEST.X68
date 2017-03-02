@@ -8,6 +8,36 @@
 START:                  ; first instruction of program
 
    ORG    $7000
+   
+   
+********************************************************
+* LEGAL SUB Tests                                      *     
+********************************************************
+    SUB.B       D0,D1       Dn,Dn
+    SUB.W       D2,D3 
+    SUB.L       A1,D0       An,Dn
+    SUB.W       A4,D3
+    SUB.B       (A3),D3     (An),Dn
+    SUB.L       (A2),D0
+    SUB.B       (A0)+,D1    (An)+,Dn
+    SUB.W       (A3)+,D2
+    SUB.L       -(A1),D2    -(An),Dn
+    SUB.B       -(A2),D1    
+    SUB.W       WVAR,D0    (xxx).W,Dn
+    SUB.L       VBIN1,D2    (xxx).L,Dn
+    SUB.W       $1,D5
+    SUB.L       $54FFF,D7
+    SUB.W       D0,A1       Dn,An
+    SUB.L       D3,A4
+    SUB.B       D3,(A3)     Dn,(An)
+    SUB.W       D0,(A2)
+    SUB.L       D1,(A0)+    Dn,(An)+
+    SUB.B       D2,(A3)+
+    SUB.W       D2,-(A1)     Dn,-(An)
+    SUB.L       D1,-(A2)
+    SUB.B       D0,WVAR    Dn,(xxx).W
+    SUB.W       D2,VBIN1    Dn,(xxx).L
+    SUB.L       D3,LVAR    Dn,(xxx).L
 
 *******************************************************
 * LEGAL ADDI Tests                                    *
@@ -36,9 +66,9 @@ START:                  ; first instruction of program
 *    MOVEA.W       -(A3),A4
 *    MOVEA.W       #2345,A6
 *    MOVEA.W       $00002345,A6 
-    MOVEA.L      $00002345,A6 
-    MOVEA.L      $00008345,A6 
-    MOVEA.L      $FFFF8345,A6 
+*    MOVEA.L      $00002345,A6 
+*    MOVEA.L      $00008345,A6 
+*    MOVEA.L      $FFFF8345,A6 
 
 * Put program code here
 
@@ -55,6 +85,7 @@ ZVAR    EQU $00000000
 VBIN1   EQU $FCFCFCFC
 
     END    START        ; last line of source
+
 
 *~Font name~Courier New~
 *~Font size~10~

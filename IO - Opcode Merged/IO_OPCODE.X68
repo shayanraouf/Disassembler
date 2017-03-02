@@ -358,11 +358,14 @@ OPCODE_DIVU
     BRA       EA_DIVU
 
 OPCODE_1001
-    MOVE.B    #$53,(A1)+ * S
-    MOVE.B    #$55,(A1)+ * U
-    MOVE.B    #$42,(A1)+ * B
-    MOVE.B    #$0,(A1)
-    JSR EA_SUB
+
+    MOVEA.L #$00000000,A1       
+    CLR.L   D0
+    
+    LEA         SUB_MSG,A1         * PRINT SUB, JMP TO EA PRINT SIZE & OPMODE 
+    MOVE.B      #14,D0
+    TRAP        #15
+    JMP EA_SUB
 OPCODE_1010
 
 OPCODE_1011
@@ -374,7 +377,9 @@ OPCODE_1011
 OPCODE_1100
 
 OPCODE_1101
-
+*    MOVE.B    #$41,(A1)+ * A
+*    MOVE.B    #$44,(A1)+ * D
+*    MOVE.B    #$44,(A1)+ * D
 
 OPCODE_1110
 
@@ -414,9 +419,21 @@ EA_MOVEW
 EA_ADDQ
     lsl.w   0
     BRA COMPARE
+ 
+
+
+*****************************************
+* EA SUBROUTINE FOR SUB
+* CHECKS BITS FROM 11-0
+*****************************************    
 EA_SUB
-    lsl.w   0
-    BRA COMPARE
+        CLR.L  D5
+        MOVE.W (A0),D5
+        JSR    CHECK_SIZE       * CHECKS THE SIZE AND PRINTS 
+        BTST   #8,D5            * GET THE OPMODE
+        BNE    OP_MODE_Dn_ea
+        JMP    OP_MODE_ea_Dn
+      
 EA_CMP
     lsl.w   0
     BRA COMPARE
@@ -452,11 +469,333 @@ EA_BCC
     BRA COMPARE
 EA_BGT
     lsl.w   0
+    *logic move isolate the bits 
+    *ISOLATE REGISTER BITS AS WELL
+    JSR   JSR_SUB
     BRA COMPARE
 EA_BLT
     lsl.w   0
     BRA COMPARE
+
+
     
+JSR_SUB
+    LEA MODE_JMP_TABLE,A4
+    MULS    #6,D4
+    JSR     0(A4,D4)
+    RTS
+
+OP_MODE_ea_Dn
+    * PRINT EA
+    CLR.L   D4
+    MOVE.W  D5,D4
+    JSR     BITS_5_THROUGH_3
+    JSR     MODE_JMP_TABLE
+    
+    MOVE.W  D5,D4
+    JSR     BITS_2_THROUGH_0
+    JSR     REGISTER_JMP_TABLE 
+    
+    * PRINT DN
+    JSR     PRINT_D    
+    CLR.L   D4
+    MOVE.W  D5,D4
+    JSR     BITS_11_THROUGH_9
+    JSR     REGISTER_JMP_TABLE 
+    
+    BRA     COMPARE 
+    
+    
+OP_MODE_Dn_ea
+    JSR     PRINT_D
+    CLR.L   D4
+    MOVE.W  D5,D4
+    JSR     BITS_11_THROUGH_9
+    JSR     REGISTER_JMP_TABLE 
+    
+    CLR.L   D4
+    MOVE.W  D5,D4
+    JSR     BITS_5_THROUGH_3
+    JSR     MODE_JMP_TABLE
+    
+    BRA     COMPARE 
+    
+    
+BITS_5_THROUGH_3
+        LSL.W   #5,D4
+        LSL.W   #5,D4
+        
+
+        LSR.W   #6,D4
+        LSR.W   #7,D4
+        RTS
+
+BITS_11_THROUGH_9
+        LSL.W   #4,D4
+        LSR.W   #6,D4
+        LSR.W   #7,D4
+        RTS
+        
+BITS_2_THROUGH_0
+        LSL.W   #6,D4
+        LSL.W   #7,D4
+ 
+        LSR.W   #6,D4
+        LSR.W   #7,D4
+        RTS
+       
+
+************************************
+* Checks the 7th bit to see the size  
+************************************
+CHECK_SIZE
+    BTST    #7,D5
+    BNE     IS_LONG
+    JSR     IS_BYTE_WORD
+    RTS     
+
+************************************
+* PRINTS L AND RTS BACK 
+************************************    
+IS_LONG
+   CLR.L    D1
+   CLR.L    D0
+   MOVE.B   #'L',D1
+   MOVE.B   #6,D0
+   TRAP     #15
+   RTS
+
+************************************
+* PRINTS B AND RTS BACK 
+************************************  
+IS_BYTE_WORD
+        BTST    #6,D5
+        BNE     IS_WORD
+        JMP     IS_BYTE
+CONT    RTS     
+        
+   
+
+******************************************
+* PRINTS W AND JUMPS BACK TO IS_BYTE_WORD
+****************************************** 
+IS_WORD
+   CLR.L    D1
+   CLR.L    D0
+   MOVE.B   #'W',D1
+   MOVE.B   #6,D0
+   TRAP     #15
+   JMP      CONT
+
+
+*****************************************
+* PRINTS W AND JUMPS BACK TO IS_BYTE_WORD
+***************************************** 
+IS_BYTE
+   CLR.L    D1
+   CLR.L    D0
+   MOVE.B   #'B',D1
+   MOVE.B   #6,D0
+   TRAP     #15
+   JMP      CONT
+
+
+*****************************************
+* SIMPLY PRINTS A LINE
+***************************************** 
+PRINT_NEW_LINE
+   LEA      BLANK,A1 
+   CLR.L    D1
+   CLR.L    D0
+   MOVE.B   #13,D0
+   TRAP     #15 
+   RTS       
+ 
+
+
+
+
+*****************************************
+*INITIALIZES JMP TABLE FOR MODE
+*****************************************
+MODE_JMP_TABLE 
+    LEA M_JMP_TABLE,A2
+    MULU #$6,D4
+    JSR 0(A2,D4)
+    RTS
+M_JMP_TABLE 
+    JMP     MODE_000
+    JMP     MODE_001
+    JMP     MODE_010
+    JMP     MODE_011
+    JMP     MODE_100
+    JMP     MODE_101
+    JMP     MODE_110
+    JMP     MODE_111
+    
+
+
+MODE_000
+    JSR     PRINT_D
+    RTS
+MODE_001
+    JSR     PRINT_A
+    RTS
+MODE_010
+    JSR         PRINT_OPEN_PARAN
+    JSR         PRINT_A
+    MOVE.W      D5,D4
+    JSR         BITS_2_THROUGH_0
+    JSR         REGISTER_JMP_TABLE
+    JSR         PRINT_CLOSE_PARAN
+    RTS
+    
+MODE_011
+MODE_100
+MODE_101
+MODE_110
+
+MODE_111
+                MOVE.W      D5,D4
+                JSR         BITS_2_THROUGH_0
+                CMP.B       #%100,D4
+                BEQ         TEST_SUB
+                ADD.L   #4,D7
+MODE_111_CONT   RTS
+
+
+
+TEST_SUB
+    JMP MODE_111_CONT
+*****************************************
+*INITIALIZES JMP TABLE FOR MODE
+*****************************************
+REGISTER_JMP_TABLE 
+    LEA REG_JMP_TABLE,A2
+    MULU #$6,D4
+    JSR 0(A2,D4)
+    RTS
+REG_JMP_TABLE 
+    JMP     REG_000
+    JMP     REG_001
+    JMP     REG_010
+    JMP     REG_011
+    JMP     REG_100
+    JMP     REG_101
+    JMP     REG_110
+    JMP     REG_111
+    
+
+
+REG_000
+   CLR.L    D1
+   CLR.L    D0
+   MOVE.B   #'0',D1
+   MOVE.B   #6,D0
+   TRAP     #15
+   RTS
+    
+REG_001
+   CLR.L    D1
+   CLR.L    D0
+   MOVE.B   #'1',D1
+   MOVE.B   #6,D0
+   TRAP     #15
+   RTS
+REG_010
+   CLR.L    D1
+   CLR.L    D0
+   MOVE.B   #'2',D1
+   MOVE.B   #6,D0
+   TRAP     #15
+   RTS
+REG_011
+   CLR.L    D1
+   CLR.L    D0
+   MOVE.B   #'3',D1
+   MOVE.B   #6,D0
+   TRAP     #15
+   RTS
+REG_100
+   CLR.L    D1
+   CLR.L    D0
+   MOVE.B   #'4',D1
+   MOVE.B   #6,D0
+   TRAP     #15
+   RTS
+REG_101
+   CLR.L    D1
+   CLR.L    D0
+   MOVE.B   #'5',D1
+   MOVE.B   #6,D0
+   TRAP     #15
+   RTS
+REG_110
+   CLR.L    D1
+   CLR.L    D0
+   MOVE.B   #'6',D1
+   MOVE.B   #6,D0
+   TRAP     #15
+   RTS
+REG_111
+   CLR.L    D1
+   CLR.L    D0
+   MOVE.B   #'7',D1
+   MOVE.B   #6,D0
+   TRAP     #15
+   RTS
+
+
+
+
+
+PRINT_D
+   CLR.L    D1
+   CLR.L    D0
+   MOVE.B   #'D',D1
+   MOVE.B   #6,D0
+   TRAP     #15
+   RTS
+   
+PRINT_A
+   CLR.L    D1
+   CLR.L    D0
+   MOVE.B   #'A',D1
+   MOVE.B   #6,D0
+   TRAP     #15
+   RTS   
+   
+
+
+PRINT_OPEN_PARAN
+   CLR.L    D1
+   CLR.L    D0
+   MOVE.B   #'(',D1
+   MOVE.B   #6,D0
+   TRAP     #15
+   RTS
+
+PRINT_CLOSE_PARAN
+   CLR.L    D1
+   CLR.L    D0
+   MOVE.B   #')',D1
+   MOVE.B   #6,D0
+   TRAP     #15
+   RTS   
+          
+       
+*****************************************
+* condition to branch to opcode
+***************************************** 
+COMPARE
+    JSR     PRINT_NEW_LINE
+    ADD.L   #2,D7
+    CMP     D6,D7
+    BLT     OpCodeInterpreter
+
+
+
+   
 *-----------------------------------------------------------
 * Mode Table
 *-----------------------------------------------------------
@@ -664,11 +1003,7 @@ EA_REG_IMM_DATA
 *--------------------------------------------------------------
 
 
-*condition to branch to opcode---------------------------------
-COMPARE
-    ADD.L   #4,D7
-    CMP     D6,D7
-    BLT     OpCodeInterpreter
+
 *_____________PRINTING_______________________
 *THE IDEA HERE IS THAT I PRINT A BYTE FROM OP-CODES,PRINT 3 BYTES FROM
 *EFFECTIVE ADDRESSING AND REPEAT TILL I'VE FINISHED
@@ -768,12 +1103,16 @@ NEW_LINE DC.B   '_',CR,LF
 INTRO   DC.B    'They call us Lil Bits.',CR,LF
         DC.B    'You abouts to get',CR,LF
         DC.B    'disassmbled',CR,LF,0
+        
+SUB_MSG DC.B    'SUB ',0
+BLANK DC.B    '',0
 
 RESTART_MSG DC.B    'INVALID PUT, WOULD YOU LIKE TO END THE PROGRAM OR TRY AGAIN? (ENTER Y TO RESTART)',0
 START_ADDR  DC.B 'Enter Starting Address (Between $00004000 && $00FF0000):',0
 END_ADDR  DC.B 'Enter Ending Address (Between $00004000 && $00FF0000):',0
 INVALID_INPUT_MES    DC.B    'INVALID INPUT, TRY AGAIN',CR,LF,0
     END    START        ; last line of source
+
 
 
 
