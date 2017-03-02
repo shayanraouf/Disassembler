@@ -122,20 +122,15 @@ JMP_TABLE
      JMP         OPCODE_1111
 
 OPCODE_0000
-    MOVE.B    #$41,(A1)+ * A
-    MOVE.B    #$44,(A1)+ * D
-    MOVE.B    #$44,(A1)+ * D
-    MOVE.B    #$49,(A1)+ * I
-    MOVE.B    #$0,(A1)+ 
+    LEA         ADDI_MSG,A1         
+    MOVE.B      #14,D0
+    TRAP        #15
     JSR EA_ADDI
     
 OPCODE_0001
-    MOVE.B    #$4D,(A1)+ * M
-    MOVE.B    #$4F,(A1)+ * O
-    MOVE.B    #$56,(A1)+ * V
-    MOVE.B    #$45,(A1)+ * E
-    MOVE.B    #$42,(A1)+ * B
-    MOVE.B    #$0,(A1)+ 
+    LEA         MOVE_MSG,A1         
+    MOVE.B      #14,D0
+    TRAP        #15
     JSR EA_MOVEB
    
 OPCODE_0010
@@ -147,22 +142,15 @@ OPCODE_0010
     
     CMP.W     D4,D5
     BEQ       OPCODE_MOVEAL
-    MOVE.B    #$4D,(A1)+ * M
-    MOVE.B    #$4F,(A1)+ * O
-    MOVE.B    #$56,(A1)+ * V
-    MOVE.B    #$45,(A1)+ * E
-    MOVE.B    #$4C,(A1)+ * L    
-    MOVE.B    #$0,(A1)+
+    LEA         MOVE_MSG,A1         
+    MOVE.B      #14,D0
+    TRAP        #15
     BRA       EA_MOVEL
 
 OPCODE_MOVEAL
-    MOVE.B    #$4D,(A1)+ * M
-    MOVE.B    #$4F,(A1)+ * O
-    MOVE.B    #$56,(A1)+ * V
-    MOVE.B    #$45,(A1)+ * E
-    MOVE.B    #$41,(A1)+ * A
-    MOVE.B    #$4C,(A1)+ * L
-    MOVE.B    #$0,(A1)+
+    LEA         MOVE_MSG,A1         
+    MOVE.B      #14,D0
+    TRAP        #15
     BRA       EA_MOVEAL 
         
     
@@ -172,27 +160,28 @@ OPCODE_0011
     LSL.W      #7,D5 
     LSR.W      #7,D5 
     LSR.W      #6,D5
+    CMP.W      D4,D5
     JMP        OPCODE_MOVE
     
 CONT_0011    
-    CMP.W      D4,D5
-    BEQ        OPCODE_AW
-    MOVE.B    #$57,(A1)+ * W
-    MOVE.B    #$0,(A1)+
-    BRA        EA_MOVEW
+    CMP.W       D4,D5
+    BEQ         OPCODE_AW
+    LEA         MOVE_MSG,A1         
+    MOVE.B      #14,D0
+    TRAP        #15
+    BRA         EA_MOVEW
     
 OPCODE_AW
-    MOVE.B    #$41,(A1)+ * A
-    MOVE.B    #$57,(A1)+ * W
-    MOVE.B    #$0,(A1)+
-    BRA       EA_MOVEAW 
+    LEA         MOVEA_MSG,A1         
+    MOVE.B      #14,D0
+    TRAP        #15
+    BRA         EA_MOVEAW 
      
 OPCODE_MOVE
-    MOVE.B    #$4D,(A1)+ * M
-    MOVE.B    #$4F,(A1)+ * O
-    MOVE.B    #$56,(A1)+ * V
-    MOVE.B    #$45,(A1)+ * E
-    JMP       CONT_0011
+    LEA         MOVE_MSG,A1         
+    MOVE.B      #14,D0
+    TRAP        #15
+    JMP         CONT_0011
   
 OPCODE_0100
     MOVE.W     (A0),D5
@@ -235,57 +224,48 @@ OPCODE_0100
     BRA        OPCODE_MOVEM
     
 OPCODE_NOP
-    MOVE.B    #$4E,(A1)+ * N
-    MOVE.B    #$4F,(A1)+ * O
-    MOVE.B    #$50,(A1)+ * P
-    MOVE.B    #$0,(A1)+
+    LEA         NOP_MSG,A1         
+    MOVE.B      #14,D0
+    TRAP        #15
     BRA       EA_NOP 
     
 OPCODE_CLR
-    MOVE.B    #$43,(A1)+ * C
-    MOVE.B    #$4C,(A1)+ * L
-    MOVE.B    #$52,(A1)+ * R
-    MOVE.B    #$0,(A1)+
+    LEA         CLR_MSG,A1         
+    MOVE.B      #14,D0
+    TRAP        #15
     BRA       EA_CLR  
 
 OPCODE_JSR
-    MOVE.B    #$4A,(A1)+ * J
-    MOVE.B    #$53,(A1)+ * S
-    MOVE.B    #$52,(A1)+ * R
+    LEA         JSR_MSG,A1         
+    MOVE.B      #14,D0
+    TRAP        #15
     MOVE.B    #$0,(A1)+
     BRA       EA_JSR  
     
 OPCODE_RTS
 
-    MOVE.B    #$52,(A1)+ * R
-    MOVE.B    #$54,(A1)+ * T
-    MOVE.B    #$53,(A1)+ * S
-    MOVE.B    #$0,(A1)+
+    LEA         RTS_MSG,A1         
+    MOVE.B      #14,D0
+    TRAP        #15
     BRA       EA_RTS  
 
 OPCODE_LEA
-    MOVE.B    #$4C,(A1)+ * L
-    MOVE.B    #$45,(A1)+ * E
-    MOVE.B    #$41,(A1)+ * A
-    MOVE.B    #$0,(A1)+
+    LEA         LEA_MSG,A1         
+    MOVE.B      #14,D0
+    TRAP        #15
     BRA       EA_LEA  
     
 OPCODE_MOVEM
 
-    MOVE.B    #$4D,(A1)+ * M
-    MOVE.B    #$4F,(A1)+ * O
-    MOVE.B    #$56,(A1)+ * V
-    MOVE.B    #$45,(A1)+ * E
-    MOVE.B    #$4D,(A1)+ * M 
-    MOVE.B    #$0,(A1)+
+    LEA         MOVEM_MSG,A1         
+    MOVE.B      #14,D0
+    TRAP        #15
     BRA       EA_MOVEM      
  
 OPCODE_0101
-    MOVE.B    #$41,(A1)+ * A
-    MOVE.B    #$44,(A1)+ * D
-    MOVE.B    #$44,(A1)+ * D
-    MOVE.B    #$51,(A1)+ * Q
-    MOVE.B    #$0,(A1)+ 
+    LEA         ADDQ_MSG,A1         
+    MOVE.B      #14,D0
+    TRAP        #15
     JSR EA_ADDQ
 
 OPCODE_0110
@@ -303,33 +283,27 @@ OPCODE_0110
     BRA        OPCODE_BLT
     
 OPCODE_BCC
-    MOVE.B    #$42,(A1)+ * B
-    MOVE.B    #$43,(A1)+ * C
-    MOVE.B    #$43,(A1)+ * C
-    MOVE.B    #$0,(A1)+ 
+    LEA         BCC_MSG,A1         
+    MOVE.B      #14,D0
+    TRAP        #15
     JSR EA_BCC
     
 OPCODE_BGT
-    MOVE.B    #$42,(A1)+ * B
-    MOVE.B    #$47,(A1)+ * G
-    MOVE.B    #$54,(A1)+ * T
-    MOVE.B    #$0,(A1)+ 
+    LEA         BGT_MSG,A1         
+    MOVE.B      #14,D0
+    TRAP        #15
     JSR EA_BGT
     
 OPCODE_BLT
-    MOVE.B    #$42,(A1)+ * B
-    MOVE.B    #$4C,(A1)+ * L
-    MOVE.B    #$54,(A1)+ * T
-    MOVE.B    #$0,(A1)+ 
+    LEA         BLE_MSG,A1         
+    MOVE.B      #14,D0
+    TRAP        #15
     JSR EA_BLT
     
 OPCODE_0111
-    MOVE.B    #$4D,(A1)+ * M
-    MOVE.B    #$4F,(A1)+ * O
-    MOVE.B    #$56,(A1)+ * V
-    MOVE.B    #$45,(A1)+ * E
-    MOVE.B    #$51,(A1)+ * Q 
-    MOVE.B    #$0,(A1)+
+    LEA         MOVEQ_MSG,A1         
+    MOVE.B      #14,D0
+    TRAP        #15
     JSR EA_MOVEQ
 OPCODE_1000
     MOVE.L     #%011,D4
@@ -343,17 +317,15 @@ OPCODE_1000
     BRA        OPCODE_OR
 
 OPCODE_OR
-    MOVE.B    #$4F,(A1)+ * O
-    MOVE.B    #$52,(A1)+ * R
-    MOVE.B    #$0,(A1)+
+    LEA         OR_MSG,A1         
+    MOVE.B      #14,D0
+    TRAP        #15
     BRA       EA_OR
 
 OPCODE_DIVU
-    MOVE.B    #$44,(A1)+ * D
-    MOVE.B    #$49,(A1)+ * I
-    MOVE.B    #$56,(A1)+ * V
-    MOVE.B    #$55,(A1)+ * U
-    MOVE.B    #$0,(A1)+
+    LEA         DIVU_MSG,A1         
+    MOVE.B      #14,D0
+    TRAP        #15
     BRA       EA_DIVU
 
 OPCODE_1001
@@ -361,17 +333,16 @@ OPCODE_1001
     MOVEA.L #$00000000,A1       
     CLR.L   D0
     
-    LEA         SUB_MSG,A1         * PRINT SUB, JMP TO EA PRINT SIZE & OPMODE 
+    LEA         SUB_MSG,A1         
     MOVE.B      #14,D0
     TRAP        #15
     JMP EA_SUB
 OPCODE_1010
 
 OPCODE_1011
-    MOVE.B    #$43,(A1)+ * C
-    MOVE.B    #$4D,(A1)+ * M
-    MOVE.B    #$50,(A1)+ * P
-    MOVE.B    #$0,(A1)
+    LEA         CMP_MSG,A1         
+    MOVE.B      #14,D0
+    TRAP        #15
     JSR EA_CMP
 OPCODE_1100
 
@@ -419,6 +390,10 @@ EA_ADDQ
     lsl.w   0
     BRA COMPARE
  
+EA_DIVU
+    CLR.L  D5
+    MOVE.W (A0),D5
+    JMP    OP_MODE_ea_Dn
 
 
 *****************************************
@@ -435,14 +410,15 @@ EA_SUB
         JMP    OP_MODE_ea_Dn
       
 EA_CMP
-    lsl.w   0
-    BRA COMPARE
+    CLR.L  D5
+    MOVE.W (A0),D5
+    JSR    CHECK_SIZE       * CHECKS THE SIZE AND PRINTS
+    JSR    PRINT_SPACE 
+    JMP    OP_MODE_ea_Dn
 EA_MOVEQ
     lsl.w   0
     BRA COMPARE
-EA_DIVU
-    lsl.w   0
-    BRA COMPARE
+
 EA_OR
     lsl.w   0
     BRA COMPARE
@@ -1028,18 +1004,20 @@ INTRO   DC.B    'They call us Lil Bits.',CR,LF
         DC.B    'disassmbled',CR,LF,0
         
 SUB_MSG         DC.B    'SUB.',0
-ADD_MSG         DC.B    'ADD ',0
-ADDI_MSG        DC.B    'ADDI ',0
-ADDQ_MSG        DC.B    'ADDQ ',0
+ADD_MSG         DC.B    'ADD.',0
+ADDI_MSG        DC.B    'ADDI.',0
+ADDQ_MSG        DC.B    'ADDQ.',0
+DIVU_MSG        DC.B    'DIVU.W ',0
 
 MOVE_MSG        DC.B    'MOVE ',0
 MOVEA_MSG       DC.B    'MOVEA ',0
 MOVEM_MSG       DC.B    'MOVEM ',0
+MOVEQ_MSG       DC.B    'MOVEM ',0
 
 NOP_MSG         DC.B    'NOP ',0
 CLR_MSG         DC.B    'CLR ',0
 OR_MSG          DC.B    'OR ',0
-CMP_MSG         DC.B    'CMP',0
+CMP_MSG         DC.B    'CMP.',0
 
 BCC_MSG         DC.B    'BCC',0
 BGT_MSG         DC.B    'BGT',0
