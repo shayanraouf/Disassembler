@@ -91,7 +91,6 @@ END_LOOP
     MOVEA.L     #$00FFE000,A1 
     MOVE.L     #0,D0
 OpCodeInterpreter
-    ADD.L       #1,D0
     MOVEA.L     D7,A0
     MOVEM.L     D1-D7/A2-A6,-(SP)       ; push unused registers to stack
     
@@ -429,7 +428,8 @@ EA_ADDQ
 EA_SUB
         CLR.L  D5
         MOVE.W (A0),D5
-        JSR    CHECK_SIZE       * CHECKS THE SIZE AND PRINTS 
+        JSR    CHECK_SIZE       * CHECKS THE SIZE AND PRINTS
+        JSR    PRINT_SPACE 
         BTST   #8,D5            * GET THE OPMODE
         BNE    OP_MODE_Dn_ea
         JMP    OP_MODE_ea_Dn
@@ -484,6 +484,9 @@ JSR_SUB
     MULS    #6,D4
     JSR     0(A4,D4)
     RTS
+************************************
+* LOGIC FOR THE <ea>,<Dn> OPMODE
+************************************  
 
 OP_MODE_ea_Dn
     * PRINT EA
@@ -505,14 +508,18 @@ OP_MODE_ea_Dn
     
     BRA     COMPARE 
     
-    
+************************************
+* LOGIC FOR THE <Dn>,<ea> OPMODE
+************************************    
 OP_MODE_Dn_ea
+    * PRINT DN
     JSR     PRINT_D
     CLR.L   D4
     MOVE.W  D5,D4
     JSR     BITS_11_THROUGH_9
-    JSR     REGISTER_JMP_TABLE 
-    
+    JSR     REGISTER_JMP_TABLE
+ 
+     * PRINT EA
     CLR.L   D4
     MOVE.W  D5,D4
     JSR     BITS_5_THROUGH_3
@@ -520,7 +527,9 @@ OP_MODE_Dn_ea
     
     BRA     COMPARE 
     
-    
+************************************
+* ISOLATES BITS 5-3 
+************************************    
 BITS_5_THROUGH_3
         LSL.W   #5,D4
         LSL.W   #5,D4
@@ -530,12 +539,18 @@ BITS_5_THROUGH_3
         LSR.W   #7,D4
         RTS
 
+************************************
+* ISOLATES BITS 11-9
+************************************  
 BITS_11_THROUGH_9
         LSL.W   #4,D4
         LSR.W   #6,D4
         LSR.W   #7,D4
         RTS
-        
+
+************************************
+* ISOLATES BITS 2-0
+************************************          
 BITS_2_THROUGH_0
         LSL.W   #6,D4
         LSL.W   #7,D4
@@ -651,22 +666,51 @@ MODE_010
     RTS
     
 MODE_011
+    JSR         PRINT_OPEN_PARAN
+    JSR         PRINT_A
+    MOVE.W      D5,D4
+    JSR         BITS_2_THROUGH_0
+    JSR         REGISTER_JMP_TABLE
+    JSR         PRINT_CLOSE_PARAN
+    JSR         PRINT_PLUS
+    RTS
 MODE_100
+    JSR         PRINT_MINUS
+    JSR         PRINT_OPEN_PARAN
+    JSR         PRINT_A
+    MOVE.W      D5,D4
+    JSR         BITS_2_THROUGH_0
+    JSR         REGISTER_JMP_TABLE
+    JSR         PRINT_CLOSE_PARAN
+
+    RTS
 MODE_101
+    JSR     PRINT_A
+    RTS
 MODE_110
+    JSR     PRINT_A
+    RTS
 
 MODE_111
                 MOVE.W      D5,D4
                 JSR         BITS_2_THROUGH_0
                 CMP.B       #%100,D4
-                BEQ         TEST_SUB
-                ADD.L   #4,D7
+                BEQ         MODE_LITERAL_DATA
+                JSR         PRINT_SPACE
+                ADD.L       #2,D7
+                MOVEA.L     D7,A1
+                MOVE.L      (A1),D1
+                MOVE.B      #15,D0
+                MOVE.B      #16,D2
+                TRAP        #15
+                ADD.L       #2,D7
 MODE_111_CONT   RTS
 
 
 
-TEST_SUB
-    JMP MODE_111_CONT
+MODE_LITERAL_DATA
+                ADD.L   #2,D7
+                JMP MODE_111_CONT
 *****************************************
 *INITIALIZES JMP TABLE FOR MODE
 *****************************************
@@ -686,7 +730,9 @@ REG_JMP_TABLE
     JMP     REG_111
     
 
-
+**************************
+* PRINT 0
+**************************
 REG_000
    CLR.L    D1
    CLR.L    D0
@@ -694,7 +740,9 @@ REG_000
    MOVE.B   #6,D0
    TRAP     #15
    RTS
-    
+**************************
+* PRINT 1
+**************************    
 REG_001
    CLR.L    D1
    CLR.L    D0
@@ -702,6 +750,9 @@ REG_001
    MOVE.B   #6,D0
    TRAP     #15
    RTS
+**************************
+* PRINT 2
+**************************   
 REG_010
    CLR.L    D1
    CLR.L    D0
@@ -709,6 +760,9 @@ REG_010
    MOVE.B   #6,D0
    TRAP     #15
    RTS
+**************************
+* PRINT 3
+**************************
 REG_011
    CLR.L    D1
    CLR.L    D0
@@ -716,6 +770,9 @@ REG_011
    MOVE.B   #6,D0
    TRAP     #15
    RTS
+**************************
+* PRINT 4
+**************************   
 REG_100
    CLR.L    D1
    CLR.L    D0
@@ -723,6 +780,9 @@ REG_100
    MOVE.B   #6,D0
    TRAP     #15
    RTS
+**************************
+* PRINT 5
+**************************   
 REG_101
    CLR.L    D1
    CLR.L    D0
@@ -730,6 +790,9 @@ REG_101
    MOVE.B   #6,D0
    TRAP     #15
    RTS
+**************************
+* PRINT 6
+**************************
 REG_110
    CLR.L    D1
    CLR.L    D0
@@ -737,6 +800,9 @@ REG_110
    MOVE.B   #6,D0
    TRAP     #15
    RTS
+**************************
+* PRINT 7
+**************************
 REG_111
    CLR.L    D1
    CLR.L    D0
@@ -748,7 +814,9 @@ REG_111
 
 
 
-
+*****************************************
+* no suprises here, just prints a D
+*****************************************   
 PRINT_D
    CLR.L    D1
    CLR.L    D0
@@ -756,7 +824,10 @@ PRINT_D
    MOVE.B   #6,D0
    TRAP     #15
    RTS
-   
+
+*****************************************
+* like the label says, it prints A 
+*****************************************    
 PRINT_A
    CLR.L    D1
    CLR.L    D0
@@ -765,8 +836,9 @@ PRINT_A
    TRAP     #15
    RTS   
    
-
-
+*****************************************
+* prints an open paranthese 
+***************************************** 
 PRINT_OPEN_PARAN
    CLR.L    D1
    CLR.L    D0
@@ -775,6 +847,10 @@ PRINT_OPEN_PARAN
    TRAP     #15
    RTS
 
+
+*****************************************
+* prints a close paranthese 
+***************************************** 
 PRINT_CLOSE_PARAN
    CLR.L    D1
    CLR.L    D0
@@ -782,259 +858,104 @@ PRINT_CLOSE_PARAN
    MOVE.B   #6,D0
    TRAP     #15
    RTS   
-          
+         
+
+*****************************************
+* prints a PLUS
+***************************************** 
+PRINT_PLUS
+   CLR.L    D1
+   CLR.L    D0
+   MOVE.B   #'+',D1
+   MOVE.B   #6,D0
+   TRAP     #15
+   RTS   
+
+*****************************************
+* prints a MINUS
+***************************************** 
+PRINT_MINUS
+   CLR.L    D1
+   CLR.L    D0
+   MOVE.B   #'-',D1
+   MOVE.B   #6,D0
+   TRAP     #15
+   RTS 
+
+*****************************************
+* prints a DOT
+***************************************** 
+PRINT_DOT
+   CLR.L    D1
+   CLR.L    D0
+   MOVE.B   #'.',D1
+   MOVE.B   #6,D0
+   TRAP     #15
+   RTS
+
+
+*****************************************
+* prints a SPACE
+***************************************** 
+PRINT_SPACE
+   CLR.L    D1
+   CLR.L    D0
+   MOVE.B   #' ',D1
+   MOVE.B   #6,D0
+   TRAP     #15
+   RTS                
        
 *****************************************
 * condition to branch to opcode
+* prints a line, increments by
 ***************************************** 
 COMPARE
     JSR     PRINT_NEW_LINE
     ADD.L   #2,D7
     CMP     D6,D7
     BLT     OpCodeInterpreter
-
+    
+    BRA     END
 
 
    
-*-----------------------------------------------------------
-* Mode Table
-*-----------------------------------------------------------
-EA_MODE_TABLE
-        JMP     EA_MODE_DRD        ; Data Register Direct
-        JMP     EA_MODE_ARD        ; Address Register Direct
-        JMP     EA_MODE_ARI        ; Address Register Indirect
-        JMP     EA_MODE_ARIPI      ; Address Register Indirect with Post Incrementing
-        JMP     EA_MODE_ARIPD      ; Address Register Indirect with Pre Decrementing
-        JMP     EA_MODE_ID_AA      ; Absolute Long/Word Address and Immediate Data
-
-*-----------------------------------------------------------
-* Mode: 000     DN         
-* [Xn: reg]   
-* Data Register Direct
-*-----------------------------------------------------------
-EA_MODE_DRD
-        MOVE.B  #'D', (A1)+       ; move D character to A1
-        ** TODO: Shift bits from A0 and store in D2
-        LEA     EA_REG_TABLE, A3
-        MULU    #6, D2
-        JMP     0(A3, D2)
-        RTS
-        
-*-----------------------------------------------------------
-* Mode: 001     AN         
-* [Xn: reg]   
-* Address Register Direct
-*-----------------------------------------------------------
-EA_MODE_ARD
-        MOVE.B  #'A', (A1)+    ; move A character to
-        ** TODO: Shift bits from A0 and store in D2
-        LEA     EA_REG_TABLE, A3
-        MULU    #6, D2
-        JMP     0(A3, D2)
-        RTS
-        
-*-----------------------------------------------------------
-* Mode: 010     (AN)        
-* [Xn: reg]   
-* Address Register Indirect
-*-----------------------------------------------------------
-EA_MODE_ARI
-        MOVE.B #'(', (A1)+     ; move ( character to A1
-        MOVE.B #'A', (A1)+     ; move A character to A1
-        ** TODO: Shift bits from A0 and store in D2
-        LEA     EA_REG_TABLE, A3
-        MULU    #6, D2
-        JMP     0(A3, D2)
-        MOVE.B #')', (A1)+     ; move ) character to A1
-        RTS
-        
-*-----------------------------------------------------------
-* Mode: 011     (AN)+       
-* [Xn: reg]   
-* Address Register Indirect with Post Incrementing
-*-----------------------------------------------------------
-EA_MODE_ARIPI
-        MOVE.B #'(', (A1)+     ; move ( character to A1
-        MOVE.B #'A', (A1)+     ; move A character to A1
-        ** TODO: Shift bits from A0 and store in D2
-        LEA     EA_REG_TABLE, A3
-        MULU    #6, D2
-        JMP     0(A3, D2)
-        MOVE.B #')', (A1)+     ; move ) character to A1
-        MOVE.B #'+', (A1)+     ; move + character to A1
-        RTS
-        
-*-----------------------------------------------------------
-* Mode: 100     -(AN)       
-* [Xn: reg]   
-* Address Register Indirect with Pre Decrementing
-*-----------------------------------------------------------
-EA_MODE_ARIPD
-        MOVE.B #'-', (A1)+     ; move - character to A1
-        MOVE.B #'(', (A1)+     ; move ( character to A1
-        MOVE.B #'A', (A1)+     ; move A character to A1
-        ** TODO: Shift bits from A0 and store in D2
-        LEA     EA_REG_TABLE, A3
-        MULU    #6, D2
-        JMP     0(A3, D2)
-        MOVE.B #')', (A1)+     ; move ) character to A1
-        RTS
-        
-*-----------------------------------------------------------
-* Mode: 111     (xxx).L; (xxx).W; #<data> 
-* [Xn: 001; Xn: 000; Xn: 100]   
-* Absolute Long/Word Address and Immediate Data
-*-----------------------------------------------------------
-EA_MODE_ID_AA
-        ** TODO: Shift bits from A0 and store in D2
-        LEA     EA_REG_TABLE, A3
-        MULU    #6, D2
-        JMP     0(A3, D2)
-        **set Register through separate table: EA_REG_TABLE_ID_AA
-        RTS
 
 
-*-----------------------------------------------------------
-* Register Table for: 
-* numbers 0-7
-*-----------------------------------------------------------
-EA_REG_TABLE
-        JMP     EA_REG_ZERO
-        JMP     EA_REG_ONE
-        JMP     EA_REG_TWO
-        JMP     EA_REG_THREE
-        JMP     EA_REG_FOUR
-        JMP     EA_REG_FIVE
-        JMP     EA_REG_SIX
-        JMP     EA_REG_SEVEN
 
-*-----------------------------------------------------------
-* Register Table for: 
-* Absolute Long/Word Address and Immediate Data
-*-----------------------------------------------------------
-EA_REG_TABLE_ID_AA
-        JMP     EA_REG_ABS_LONG
-        JMP     EA_REG_ABS_WORD
-        JMP     EA_REG_IMM_DATA
-        ** TODO - include invalid options
 
-*-----------------------------------------------------------
-* Register Zero  [000]
-*-----------------------------------------------------------       
-EA_REG_ZERO
-        MOVE.B #'0', (A1)+     ; move 0 character to A1
-        RTS
     
-*-----------------------------------------------------------
-* Register One   [001]
-*-----------------------------------------------------------       
-EA_REG_ONE
-        MOVE.B #'1', (A1)+     ; move 1 character to A1
-        RTS
-    
-*-----------------------------------------------------------
-* Register Two   [010]
-*-----------------------------------------------------------       
-EA_REG_TWO
-        MOVE.B #'2', (A1)+     ; move 2 character to A1
-        RTS
-    
-*-----------------------------------------------------------
-* Register Three [011]
-*-----------------------------------------------------------       
-EA_REG_THREE
-        MOVE.B #'3', (A1)+     ; move 3 character to A1
-        RTS
-    
-*-----------------------------------------------------------
-* Register Four  [100]
-*-----------------------------------------------------------       
-EA_REG_FOUR
-        MOVE.B #'4', (A1)+     ; move 4 character to A1
-        RTS
-    
-*-----------------------------------------------------------
-* Register Five  [101]
-*-----------------------------------------------------------       
-EA_REG_FIVE
-        MOVE.B #'5', (A1)+     ; move 5 character to A1
-        RTS
-    
-*-----------------------------------------------------------
-* Register Six   [110]
-*-----------------------------------------------------------       
-EA_REG_SIX
-        MOVE.B #'6', (A1)+     ; move 6 character to A1
-        RTS
-    
-*-----------------------------------------------------------
-* Register Seven [111]
-*-----------------------------------------------------------       
-EA_REG_SEVEN
-        MOVE.B #'7', (A1)+     ; move 7 character to A1
-        RTS
-
-*-----------------------------------------------------------
-* Long      [001]
-*-----------------------------------------------------------  
-EA_REG_ABS_LONG
-        MOVE.B #'$', (A1)+     ; move $ character to A1
-        ** TODO - finish branch options
-        RTS
-
-*-----------------------------------------------------------
-* Word      [000]
-*----------------------------------------------------------- 
-EA_REG_ABS_WORD
-        MOVE.B #'$', (A1)+     ; move $ character to A1
-        ** TODO - finish branch options
-        RTS
-        
-*-----------------------------------------------------------
-* Immediate [100]
-*----------------------------------------------------------- 
-EA_REG_IMM_DATA
-        MOVE.B #'#', (A1)+     ; move # character to A1
-        MOVE.B #'$', (A1)+     ; move $ character to A1       
-        ** TODO - finish branch options
-        RTS
-*END OF EA-----------------------------------------------
-*--------------------------------------------------------------
-*--------------------------------------------------------------
-
-
 
 *_____________PRINTING_______________________
 *THE IDEA HERE IS THAT I PRINT A BYTE FROM OP-CODES,PRINT 3 BYTES FROM
 *EFFECTIVE ADDRESSING AND REPEAT TILL I'VE FINISHED
-                MOVEA.L         #$00FFE000,A4
-                MOVE.L          #0,D5
-                MOVE.L          D0,D6   *HOLDS THE NUMBER OF INSTRUCTIONS, TO INDICATE HOW MANY TIMES TO PRINT
-                CLR.L           D0
-                MOVE.L          #3,D0
-PRINTINGLOOP    CMP.L           D5,D6   *IF NOTHING VALID HAS BEEN READ IN, THAT COUNTER SHOULD BE 0
-                BEQ             END
-                
-                
-           
-                MOVEA.L         A4,A1
-                MOVE.B          #14,D0          *PRINTS THE TRANSLATED OP-CODE
-                TRAP            #15
-                *LEAVING SPACE TO PRINT TRANSLATED EA
-
-                               
-                
-INCREMENT       CMP.B           #$00,(A4)         *MOVES A4 ADDRESS TO THE NEXT TRANSLATED OP-CODE
-                BEQ             END_INSTRUCTION   *BY MOVING A4'S ADDRESS UP BYTE BY BYTE TILL AFTER 00, THE BREAK POINT
-                CMP.B           #$FF,(A4)
-                BEQ             END_INSTRUCTION
-                ADDA.L          #1,A4           
-                JMP             INCREMENT
-                
-END_INSTRUCTION   
-                ADDA.L          #1,A4         
-                ADD.L           #$1,D5
-                JMP             PRINTINGLOOP       
+*                MOVEA.L         #$00FFE000,A4
+*                MOVE.L          #0,D5
+*                MOVE.L          D0,D6   *HOLDS THE NUMBER OF INSTRUCTIONS, TO INDICATE HOW MANY TIMES TO PRINT
+*                CLR.L           D0
+*                MOVE.L          #3,D0
+*PRINTINGLOOP    CMP.L           D5,D6   *IF NOTHING VALID HAS BEEN READ IN, THAT COUNTER SHOULD BE 0
+*                BEQ             END
+*                
+*                
+*           
+*                MOVEA.L         A4,A1
+*                MOVE.B          #14,D0          *PRINTS THE TRANSLATED OP-CODE
+*                TRAP            #15
+*                *LEAVING SPACE TO PRINT TRANSLATED EA
+*
+*                               
+*                
+*INCREMENT       CMP.B           #$00,(A4)         *MOVES A4 ADDRESS TO THE NEXT TRANSLATED OP-CODE
+*                BEQ             END_INSTRUCTION   *BY MOVING A4'S ADDRESS UP BYTE BY BYTE TILL AFTER 00, THE BREAK POINT
+*                CMP.B           #$FF,(A4)
+*                BEQ             END_INSTRUCTION
+*                ADDA.L          #1,A4           
+*                JMP             INCREMENT
+*                
+*END_INSTRUCTION   
+*                ADDA.L          #1,A4         
+*                ADD.L           #$1,D5
+*                JMP             PRINTINGLOOP       
                 
                 
                 
@@ -1091,7 +1012,9 @@ FALSE
                        MOVE.B   #1,D6
                        RTS
                        
-END                       
+END
+    lsl.w   0 
+    lsl.w   0                      
     SIMHALT             ; halt simulator
 
 * Put variables and constants here
@@ -1104,7 +1027,28 @@ INTRO   DC.B    'They call us Lil Bits.',CR,LF
         DC.B    'You abouts to get',CR,LF
         DC.B    'disassmbled',CR,LF,0
         
-SUB_MSG DC.B    'SUB ',0
+SUB_MSG         DC.B    'SUB.',0
+ADD_MSG         DC.B    'ADD ',0
+ADDI_MSG        DC.B    'ADDI ',0
+ADDQ_MSG        DC.B    'ADDQ ',0
+
+MOVE_MSG        DC.B    'MOVE ',0
+MOVEA_MSG       DC.B    'MOVEA ',0
+MOVEM_MSG       DC.B    'MOVEM ',0
+
+NOP_MSG         DC.B    'NOP ',0
+CLR_MSG         DC.B    'CLR ',0
+OR_MSG          DC.B    'OR ',0
+CMP_MSG         DC.B    'CMP',0
+
+BCC_MSG         DC.B    'BCC',0
+BGT_MSG         DC.B    'BGT',0
+BLE_MSG         DC.B    'BLE',0
+
+JSR_MSG         DC.B    'JSR',0
+RTS_MSG         DC.B    'RTS',0
+LEA_MSG         DC.B    'LEA',0
+
 BLANK DC.B    '',0
 
 RESTART_MSG DC.B    'INVALID PUT, WOULD YOU LIKE TO END THE PROGRAM OR TRY AGAIN? (ENTER Y TO RESTART)',0
@@ -1112,6 +1056,7 @@ START_ADDR  DC.B 'Enter Starting Address (Between $00004000 && $00FF0000):',0
 END_ADDR  DC.B 'Enter Ending Address (Between $00004000 && $00FF0000):',0
 INVALID_INPUT_MES    DC.B    'INVALID INPUT, TRY AGAIN',CR,LF,0
     END    START        ; last line of source
+
 
 
 

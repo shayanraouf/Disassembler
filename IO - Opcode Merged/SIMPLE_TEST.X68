@@ -13,6 +13,8 @@ START:                  ; first instruction of program
 ********************************************************
 * LEGAL SUB Tests                                      *     
 ********************************************************
+    SUB.B       D0,WVAR    Dn,(xxx).W
+    SUB.W       WVAR,D0    (xxx).W,Dn
     SUB.B       D0,D1       Dn,Dn
     SUB.W       D2,D3 
     SUB.L       A1,D0       An,Dn
@@ -25,7 +27,7 @@ START:                  ; first instruction of program
     SUB.B       -(A2),D1    
     SUB.W       WVAR,D0    (xxx).W,Dn
     SUB.L       VBIN1,D2    (xxx).L,Dn
-    SUB.W       $1,D5
+    SUB.W       $8000,D5
     SUB.L       $54FFF,D7
     SUB.W       D0,A1       Dn,An
     SUB.L       D3,A4
@@ -38,7 +40,7 @@ START:                  ; first instruction of program
     SUB.B       D0,WVAR    Dn,(xxx).W
     SUB.W       D2,VBIN1    Dn,(xxx).L
     SUB.L       D3,LVAR    Dn,(xxx).L
-
+    
 *******************************************************
 * LEGAL ADDI Tests                                    *
 *******************************************************
@@ -53,7 +55,7 @@ START:                  ; first instruction of program
 *    ADDI.L      #WVAR,WVAR    #<data>,(xxx).W
 *    ADDI.B      #$11, LVAR     #<data>,(xxx).L
 *    ADDI.L      #$12345,D7     #<data>,Dn
-    
+*    
     
 *******************************************************
 * LEGAL MOVEA Tests                                   *     
@@ -85,6 +87,7 @@ ZVAR    EQU $00000000
 VBIN1   EQU $FCFCFCFC
 
     END    START        ; last line of source
+
 
 
 *~Font name~Courier New~
