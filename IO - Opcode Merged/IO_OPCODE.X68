@@ -88,9 +88,10 @@ END_LOOP
                BGT              RESTART
 *______________________YOUR CODE STARTS HERE!!!!!!!!!!___________________
 
-    MOVEA.L     #$00FFE000,A1 
-    MOVE.L     #0,D0
+
 OpCodeInterpreter
+    JSR         PRINT_ADDRESS_HEX
+    JSR         PRINT_SPACE
     MOVEA.L     D7,A0
     MOVEM.L     D1-D7/A2-A6,-(SP)       ; push unused registers to stack
     
@@ -134,24 +135,24 @@ OPCODE_0001
     JSR EA_MOVEB
    
 OPCODE_0010
-    MOVE.L     #%001,D4
+    MOVE.L      #%001,D4
     MOVE.W     (A0),D5
-    LSL.W      #7,D5 
-    LSR.W      #7,D5 
-    LSR.W      #6,D5
+    LSL.W       #7,D5 
+    LSR.W       #7,D5 
+    LSR.W       #6,D5
     
-    CMP.W     D4,D5
-    BEQ       OPCODE_MOVEAL
+    CMP.W       D4,D5
+    BEQ         OPCODE_MOVEAL
     LEA         MOVE_MSG,A1         
     MOVE.B      #14,D0
     TRAP        #15
-    BRA       EA_MOVEL
+    BRA         EA_MOVEL
 
 OPCODE_MOVEAL
     LEA         MOVE_MSG,A1         
     MOVE.B      #14,D0
     TRAP        #15
-    BRA       EA_MOVEAL 
+    BRA         EA_MOVEAL 
         
     
 OPCODE_0011
@@ -227,20 +228,20 @@ OPCODE_NOP
     LEA         NOP_MSG,A1         
     MOVE.B      #14,D0
     TRAP        #15
-    BRA       EA_NOP 
+    BRA         EA_NOP 
     
 OPCODE_CLR
     LEA         CLR_MSG,A1         
     MOVE.B      #14,D0
     TRAP        #15
-    BRA       EA_CLR  
+    BRA         EA_CLR  
 
 OPCODE_JSR
     LEA         JSR_MSG,A1         
     MOVE.B      #14,D0
     TRAP        #15
-    MOVE.B    #$0,(A1)+
-    BRA       EA_JSR  
+    MOVE.B      #$0,(A1)+
+    BRA         EA_JSR  
     
 OPCODE_RTS
 
@@ -471,9 +472,10 @@ OP_MODE_ea_Dn
     JSR     BITS_5_THROUGH_3
     JSR     MODE_JMP_TABLE
     
-    MOVE.W  D5,D4
-    JSR     BITS_2_THROUGH_0
-    JSR     REGISTER_JMP_TABLE 
+    JSR     PRINT_COMMA
+*     MOVE.W  D5,D4
+*     JSR     BITS_2_THROUGH_0
+*    JSR     REGISTER_JMP_TABLE 
     
     * PRINT DN
     JSR     PRINT_D    
@@ -495,13 +497,28 @@ OP_MODE_Dn_ea
     JSR     BITS_11_THROUGH_9
     JSR     REGISTER_JMP_TABLE
  
+    JSR     PRINT_COMMA
      * PRINT EA
     CLR.L   D4
     MOVE.W  D5,D4
     JSR     BITS_5_THROUGH_3
     JSR     MODE_JMP_TABLE
     
-    BRA     COMPARE 
+    BRA     COMPARE
+
+
+************************************
+* PRINTS THE ADDRESS IN HEX
+************************************ 
+PRINT_ADDRESS_HEX
+    MOVE.L      D7,D1
+    MOVE.B      #15,D0
+    MOVE.B      #16,D2
+    TRAP        #15
+    CLR.L       D1
+    CLR.L       D0
+    CLR.L       D2
+    RTS 
     
 ************************************
 * ISOLATES BITS 5-3 
@@ -627,10 +644,16 @@ M_JMP_TABLE
 
 
 MODE_000
-    JSR     PRINT_D
+    JSR         PRINT_D
+    MOVE.W      D5,D4
+    JSR         BITS_11_THROUGH_9
+    JSR         REGISTER_JMP_TABLE 
     RTS
 MODE_001
-    JSR     PRINT_A
+    JSR         PRINT_A
+    MOVE.W      D5,D4
+    JSR         BITS_2_THROUGH_0
+    JSR         REGISTER_JMP_TABLE
     RTS
 MODE_010
     JSR         PRINT_OPEN_PARAN
@@ -670,9 +693,21 @@ MODE_110
 MODE_111
                 MOVE.W      D5,D4
                 JSR         BITS_2_THROUGH_0
-                CMP.B       #%100,D4
+                
+                CMP.B       #%100,D4   * LITERAL ADDRESSING
                 BEQ         MODE_LITERAL_DATA
                 JSR         PRINT_SPACE
+                
+                CMP.B       #%001,D4   * LONG ADDRESSING
+                BEQ         MODE_LONG_DATA
+                
+                CMP.B       #%000,D4   * WORD ADDRESSING
+                BEQ         MODE_WORD_DATA
+                
+MODE_111_CONT   RTS
+
+
+MODE_LONG_DATA
                 ADD.L       #2,D7
                 MOVEA.L     D7,A1
                 MOVE.L      (A1),D1
@@ -680,13 +715,16 @@ MODE_111
                 MOVE.B      #16,D2
                 TRAP        #15
                 ADD.L       #2,D7
-MODE_111_CONT   RTS
-
-
+                JMP         MODE_111_CONT
 
 MODE_LITERAL_DATA
                 ADD.L   #2,D7
-                JMP MODE_111_CONT
+                JMP     MODE_111_CONT
+                
+
+MODE_WORD_DATA
+                ADD.L   #2,D7
+                JMP     MODE_111_CONT                
 *****************************************
 *INITIALIZES JMP TABLE FOR MODE
 *****************************************
@@ -879,6 +917,17 @@ PRINT_SPACE
    MOVE.B   #' ',D1
    MOVE.B   #6,D0
    TRAP     #15
+   RTS 
+
+*****************************************
+* prints a COMMA
+***************************************** 
+PRINT_COMMA
+   CLR.L    D1
+   CLR.L    D0
+   MOVE.B   #',',D1
+   MOVE.B   #6,D0
+   TRAP     #15
    RTS                
        
 *****************************************
@@ -1009,7 +1058,7 @@ ADDI_MSG        DC.B    'ADDI.',0
 ADDQ_MSG        DC.B    'ADDQ.',0
 DIVU_MSG        DC.B    'DIVU.W ',0
 
-MOVE_MSG        DC.B    'MOVE ',0
+MOVE_MSG        DC.B    'MOVE.',0
 MOVEA_MSG       DC.B    'MOVEA ',0
 MOVEM_MSG       DC.B    'MOVEM ',0
 MOVEQ_MSG       DC.B    'MOVEM ',0
