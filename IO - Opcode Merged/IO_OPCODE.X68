@@ -375,7 +375,18 @@ OPCODE_1101
     JSR EA_ADD
 
 OPCODE_1110
-
+    MOVE.W      (A0),D5         *ISOLATE THE BITS THAT MAKE
+    LSL.W       #8,D5           *ALL THE SHIFT OP CODES DIFFERENT
+    LSL.W       #3,D5
+    LSR.W       #8,D5
+    LSR.W       #6,D5
+    CMP         #$0,D5
+    BEQ         EA_ARITH_SHIFT
+    CMP         #$1,D5
+    BEQ         EA_LOGIC_SHIFT
+    CMP         #$3,D5
+    BEQ         EA_ROTATE_SHIFT
+    
 OPCODE_1111
 
 
@@ -383,6 +394,112 @@ OPCODE_1111
 *Effective Addressing Section----------------------------------
 *--------------------------------------------------------------
 *--------------------------------------------------------------
+EA_ARITH_SHIFT
+    LEA         ARITH_SHIFT_MSG,A1
+    MOVE.B      #14,D0
+    TRAP        #15
+    MOVE.W      (A0),D4
+    MOVE.W      D4,D5       *SAVE
+    JSR         ISOLATE_BIT_8        *DETERMINES DIRECTION OF SHIFT
+    JSR         LEFT_OR_RIGHT
+    JSR         PRINT_DOT            *CHARACTER PRINTING
+    JSR         CHECK_SIZE
+    JSR         PRINT_SPACE
+    MOVE.W      (A0),D4
+    JSR         ISOLATE_BIT_5
+    CMP         #$0,D4
+    BEQ         SHIFT_BY_LITERAL
+    JMP         SHIFT_BY_REGISTER
+EA_LOGIC_SHIFT
+    LEA         LOGIC_SHIFT_MSG,A1
+    MOVE.B      #14,D0
+    TRAP        #15
+    MOVE.W      (A0),D4
+    MOVE.W      D4,D5       *SAVE
+    JSR         ISOLATE_BIT_8
+    JSR         LEFT_OR_RIGHT
+    JSR         PRINT_DOT
+    JSR         CHECK_SIZE
+    JSR         PRINT_SPACE
+    MOVE.W      (A0),D4
+    JSR         ISOLATE_BIT_5
+    CMP         #$0,D4
+    BEQ         SHIFT_BY_LITERAL
+    JMP         SHIFT_BY_REGISTER
+EA_ROTATE_SHIFT
+                  LEA         ROTATE_SHIFT_MSG,A1
+                  MOVE.B      #14,D0
+                  TRAP        #15
+                  MOVE.W      (A0),D4
+                  MOVE.W      D4,D5       *SAVE
+                  JSR         ISOLATE_BIT_8
+                  JSR         LEFT_OR_RIGHT
+                  JSR         PRINT_DOT
+                  JSR         CHECK_SIZE
+                  JSR         PRINT_SPACE
+                  MOVE.W      (A0),D4
+                  JSR         ISOLATE_BIT_5
+                  CMP         #$0,D4
+                  BEQ         SHIFT_BY_LITERAL
+                  JMP         SHIFT_BY_REGISTER
+FINISH_SHIFT_TYPE
+                  MOVE.W      (A0),D4
+                  JSR         BITS_2_THROUGH_0
+                  MOVE.W      D4,D3
+                  MOVE.W      #$0,D4
+                  JSR         MODE_JMP_TABLE
+                  BRA         COMPARE
+                  
+
+SHIFT_BY_REGISTER
+                  MOVE.W      (A0),D4
+                  JSR         BITS_11_THROUGH_9
+                  MOVE.W      D4,D3
+                  MOVE.W      #0,D4
+                  JSR         MODE_JMP_TABLE
+                  JSR         PRINT_COMMA
+                  JMP         FINISH_SHIFT_TYPE
+SHIFT_BY_LITERAL
+                  MOVE.W      (A0),D4
+                  JSR         BITS_11_THROUGH_9
+                  MOVE.W      D4,D3
+                  JSR         PRINT_HASH_TAG
+                  CMP         #$0,D3
+                  BNE         CONTINUE_REG_NUM
+                  JSR         PRINT_8
+                  JMP         CONTINUE
+CONTINUE_REG_NUM  JSR         REGISTER_JMP_TABLE 
+CONTINUE          JSR         PRINT_COMMA
+                  JMP         FINISH_SHIFT_TYPE
+    
+**************************
+* PRINT 8
+**************************
+PRINT_8
+   CLR.L    D1
+   CLR.L    D0
+   MOVE.B   #'8',D1
+   MOVE.B   #6,D0
+   TRAP     #15
+   RTS
+            
+ISOLATE_BIT_5
+    LSL.W       #8,D4
+    LSL.W       #2,D4
+    LSR.W       #8,D4
+    LSR.W       #7,D4
+    RTS
+ISOLATE_BIT_8
+    LSL.W       #7,D4
+    LSR.W       #8,D4
+    LSR.W       #7,D4
+    RTS    
+LEFT_OR_RIGHT                   *DECIDES WHETHER TO PRINT R OR L
+    CMP         #$0,D4
+    BEQ         PRINT_R
+    CMP         #$1,D4
+    BEQ         PRINT_L
+    RTS    
 EA_ADDI
     CLR.L     D4
     CLR.L     D5
@@ -1304,7 +1421,16 @@ PRINT_W
    MOVE.B   #6,D0
    TRAP     #15
    RTS
-
+*****************************************
+* no suprises here, just prints a R
+*****************************************   
+PRINT_R
+   CLR.L    D1
+   CLR.L    D0
+   MOVE.B   #'R',D1
+   MOVE.B   #6,D0
+   TRAP     #15
+   RTS
 
 *****************************************
 * no suprises here, just prints a D
@@ -1558,6 +1684,10 @@ BLE_MSG         DC.B    'BLE',0
 JSR_MSG         DC.B    'JSR ',0
 RTS_MSG         DC.B    'RTS ',0
 LEA_MSG         DC.B    'LEA ',0
+
+LOGIC_SHIFT_MSG   DC.B    'LS',0
+ARITH_SHIFT_MSG      DC.B    'AS',0
+ROTATE_SHIFT_MSG     DC.B    'RO',0
 
 MULS_MSG        DC.B    'MULS.W ',0
 
