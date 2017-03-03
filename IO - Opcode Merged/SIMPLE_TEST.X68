@@ -8,13 +8,39 @@
 START:                  ; first instruction of program
 
    ORG    $7000
-   
+
+
+*******************************************************
+* LEGAL CMP Tests                                      *     
+*******************************************************
+*    CMP.B       D1,D0       Dn,Dn
+*    CMP.W       A2,D1       An,Dn
+*    CMP.L       (A3),D2     (An),Dn
+*    CMP.B       (A4)+,D3    (An)+,Dn
+*    CMP.W       -(A5),D4    -(An),Dn
+*    CMP.L       WVAR,D5    (xxx).W,Dn
+*    CMP.B       LVAR,D6    (xxx).L,Dn
+*    CMP.L       #VBIN1,D7   #<data>,Dn
+*
+*    CMPA.W      D0,A0       Dn,An
+*    CMPA.L      A0,A1       An,An
+*    CMPA.W      (A1),A2     (An),An
+*    CMPA.L      (A2)+,A3    (An)+,An
+*    CMPA.W      -(A3),A4    -(An),An
+*    CMPA.L      WVAR,A5    (xxx).W,An
+*    CMPA.W      LVAR,A6    (xxx).L,An
+*    CMPA.L      #1234,A7    #<data>,An   
    
 ********************************************************
 * LEGAL SUB Tests                                      *     
 ********************************************************
+    SUB.B       (A3),D3     (An),Dn
+    SUB.L       $7000,d0    Dn,(xxx).W
     SUB.B       D0,WVAR    Dn,(xxx).W
     SUB.W       WVAR,D0    (xxx).W,Dn
+    SUB.B       (A3),D3     (An),Dn
+    SUB.L       (A2),D0
+    SUB.B       (A0)+,D1    (An)+,Dn
     SUB.B       D0,D1       Dn,Dn
     SUB.W       D2,D3 
     SUB.L       A1,D0       An,Dn
@@ -41,6 +67,17 @@ START:                  ; first instruction of program
     SUB.W       D2,VBIN1    Dn,(xxx).L
     SUB.L       D3,LVAR    Dn,(xxx).L
     
+    
+*******************************************************
+* LEGAL DIVU Tests                                     *     
+*******************************************************
+*    DIVU.W      D1,D2           Dn,Dn
+*    DIVU.W      (A1),D2         (An),Dn
+*    DIVU.W      (A2)+,D3        (An)+,Dn
+*    DIVU.W      -(A3),D4        -(An),Dn
+*    DIVU.W      WVAR,D5        (xxx).W,Dn
+*    DIVU.W      LVAR,D6        (xxx).L,Dn
+*    DIVU.W      #$FF00,D7       #<data>,Dn
 *******************************************************
 * LEGAL ADDI Tests                                    *
 *******************************************************
@@ -71,6 +108,34 @@ START:                  ; first instruction of program
 *    MOVEA.L      $00002345,A6 
 *    MOVEA.L      $00008345,A6 
 *    MOVEA.L      $FFFF8345,A6 
+
+********************************************************
+* LEGAL Move Tests                                     *     
+********************************************************
+*    MOVE.L $1234,$5678
+*    MOVE.W $1234,$12345678
+*    MOVE.W $12345678, $246810
+*    MOVE.W #$123,D6
+*    MOVE.L #$2468135,$54789
+*    MOVE.L #$1234,D3
+*    MOVE.L  D1,D2
+*    MOVE.W  A4, (A5)
+*    MOVE.L  (A5)+,-(A5)
+*    MOVE.B  BVAR, D0           <ea>,Dn
+*    MOVE.W  WVAR, D1
+*    MOVE.L  #LVAR, D2
+*    MOVE.B  BVAR, (A0)         <ea>,(An)
+*    MOVE.W  WVAR, (A1)
+*    MOVE.L  #LVAR, (A2)
+*    MOVE.B  #BVAR, (A3)+       <ea>,(An)+
+*    MOVE.W  WVAR, (A4)+
+*    MOVE.L  LVAR, (A5)+
+*    MOVE.B  BVAR, -(A0)        <ea>,-(An)
+*    MOVE.W  WVAR, -(A2)
+*    MOVE.L  #LVAR, -(A4)
+*    MOVE.B  BVAR, WVAR        <ea>,(xxx).W
+*    MOVE.W  WVAR, LVAR        <ea>,(xxx).L
+*    MOVE.L  ZVAR, $00F00200    <ea>,#<data>
 
 * Put program code here
 
