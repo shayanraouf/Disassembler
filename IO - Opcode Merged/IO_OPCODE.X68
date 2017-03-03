@@ -283,7 +283,7 @@ OPCODE_0101
     LEA         ADDQ_MSG,A1         
     MOVE.B      #14,D0
     TRAP        #15
-    JSR EA_ADDQ
+    JSR         EA_ADDQ
 
 OPCODE_0110
     MOVE.W     (A0),D5
@@ -552,8 +552,9 @@ EA_MOVEAW
 
     BRA COMPARE   
 EA_ADDQ
-    lsl.w   0
-    BRA COMPARE
+    CLR.L  D5
+    MOVE.W (A0),D5
+    JMP    OP_MODE_ea_ea
 
 *****************************************
 * EA SUBROUTINE FOR                 DIVU
@@ -688,7 +689,28 @@ EA_BLT
 ************************************  
 
 OP_MODE_ea_ea
+
+    MOVE.W      #%0000000000000100,D3   * LITERAL ADDRESSING
+    MOVE.W      #%0000000000000111,D4   * LITERAL ADDRESSING
+    JSR         MODE_JMP_TABLE       * Jumps to mode jmp table
     
+    JSR         PRINT_COMMA
+      
+    * PRINT EA
+    CLR.L       D4
+    MOVE.W      D5,D4                *get the size first and store in D3 for reg. jmp table
+    JSR         BITS_2_THROUGH_0
+    MOVE.W      D4,D3
+    
+    MOVE.W      D5,D4
+    JSR         BITS_2_THROUGH_0
+    MOVE.W      D4,D2
+    
+    MOVE.W      D5,D4                *get the mode and store in D4 for mode jump table
+    JSR         BITS_5_THROUGH_3
+    JSR         MODE_JMP_TABLE       * Jumps to mode jmp table
+    
+    BRA         COMPARE     
     
     
     

@@ -8,28 +8,40 @@
 START:                  ; first instruction of program
 
    ORG    $7000
+
+*******************************************************
+* LEGAL ADDQ Tests                                   *     
+*******************************************************
+    ADDQ      #3,D7
+    ADDQ      #3,A4
+    ADDQ      #3,(A4)
+    ADDQ      #3,(A3)+
+    ADDQ      #3,-(A3)
+    ADDQ      #3,$0001
+    ADDQ      #3,$FFFF
+    ADDQ      #3,$FFFF8432
    
    
 *******************************************************
 * LEGAL ADD Tests                                      *     
 *******************************************************
-    ADD.W       LVAR,D1    (xxx).L,Dn
-    ADD.B       WVAR,D0    (xxx).W,Dn
-    ADD.B       D0,D1       Dn,Dn
-    ADD.W       D1,D2
-    ADD.L       D2,D3
-    ADD.W       A1,D1       An,Dn
-    ADD.L       A2,D2
-    ADD.L       A3,D5
-    ADD.B       (A0),D2     (An),Dn
-    ADD.W       (A1),D3
-    ADD.L       (A2),D4
-    ADD.B       (A3)+,D0    (An)+,Dn
-    ADD.W       (A4)+,D1
-    ADD.L       (A5)+,D2
-    ADD.B       -(A0),D3    -(An),Dn
-    ADD.W       -(A1),D4    
-    ADD.L       -(A2),D5   
+*    ADD.W       LVAR,D1    (xxx).L,Dn
+*    ADD.B       WVAR,D0    (xxx).W,Dn
+*    ADD.B       D0,D1       Dn,Dn
+*    ADD.W       D1,D2
+*    ADD.L       D2,D3
+*    ADD.W       A1,D1       An,Dn
+*    ADD.L       A2,D2
+*    ADD.L       A3,D5
+*    ADD.B       (A0),D2     (An),Dn
+*    ADD.W       (A1),D3
+*    ADD.L       (A2),D4
+*    ADD.B       (A3)+,D0    (An)+,Dn
+*    ADD.W       (A4)+,D1
+*    ADD.L       (A5)+,D2
+*    ADD.B       -(A0),D3    -(An),Dn
+*    ADD.W       -(A1),D4    
+*    ADD.L       -(A2),D5   
    
    
    
