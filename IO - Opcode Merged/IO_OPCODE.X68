@@ -345,7 +345,7 @@ OPCODE_0111
     LEA         MOVEQ_MSG,A1         
     MOVE.B      #14,D0
     TRAP        #15
-    JSR EA_MOVEQ
+    JSR         EA_MOVEQ
 OPCODE_1000
     MOVE.L     #%011,D4
     MOVE.W     (A0),D5
@@ -734,8 +734,22 @@ EA_CMP
     JSR    PRINT_SPACE 
     JMP    OP_MODE_ea_Dn
 EA_MOVEQ
-    lsl.w   0
-    BRA COMPARE
+    JSR         PRINT_HASH_TAG
+    MOVE.W      (A0),D5
+    MOVE.W      D5,D4
+    JSR         BITS_7_THROUGH_0
+    CLR         D1
+    MOVE.W      D4,D1
+    MOVE.B      #10,D2      
+    MOVE.L      #15,D0
+    TRAP        #15
+    JSR         PRINT_COMMA
+    MOVE.W      D5,D4
+    JSR         BITS_11_THROUGH_9
+    MOVE.W      D4,D3
+    MOVE.W      #$0,D4
+    JSR         MODE_JMP_TABLE            
+    BRA         COMPARE
 
 EA_OR
         CLR.L  D5
@@ -1049,7 +1063,7 @@ PRINT_ADDRESS_HEX
     CLR.L       D0
     CLR.L       D2
     RTS 
-    
+
 ************************************
 * ISOLATES BITS 5-3 
 ************************************    
@@ -1109,11 +1123,8 @@ BITS_7_THROUGH_6
 * ISOLATES BITS 7-0
 ************************************          
 BITS_7_THROUGH_0
-        LSL.W   #7,D4
-        LSL.W   #1,D4
-        
-        LSR.W   #7,D4
-        LSR.W   #1,D4
+        LSL.W   #8,D4
+        LSR.W   #8,D4
         RTS       
               
 ************************************
@@ -1783,3 +1794,4 @@ INVALID_INPUT_MES    DC.B    'INVALID INPUT, TRY AGAIN',CR,LF,0
 *~Font size~10~
 *~Tab type~1~
 *~Tab size~4~
+
