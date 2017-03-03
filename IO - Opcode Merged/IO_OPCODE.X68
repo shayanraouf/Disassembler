@@ -369,6 +369,10 @@ OPCODE_1100
     JSR EA_MULS
 
 OPCODE_1101
+    LEA         ADD_MSG,A1         
+    MOVE.B      #14,D0
+    TRAP        #15
+    JSR EA_ADD
 
 OPCODE_1110
 
@@ -558,6 +562,16 @@ EA_DIVU
     CLR.L  D5
     MOVE.W (A0),D5
     JMP    OP_MODE_ea_Dn
+
+
+EA_ADD
+        CLR.L  D5
+        MOVE.W (A0),D5
+        JSR    CHECK_SIZE       * CHECKS THE SIZE AND PRINTS
+        JSR    PRINT_SPACE 
+        BTST   #8,D5            * GET THE OPMODE
+        BNE    OP_MODE_Dn_ea
+        JMP    OP_MODE_ea_Dn
 
 
 *****************************************
