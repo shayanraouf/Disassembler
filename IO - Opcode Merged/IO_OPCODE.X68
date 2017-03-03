@@ -129,7 +129,7 @@ OPCODE_0000
     JSR EA_ADDI
     
 OPCODE_0001
-    LEA         MOVE_MSG,A1         
+    LEA         MOVEB_MSG,A1         
     MOVE.B      #14,D0
     TRAP        #15
     JSR EA_MOVEB
@@ -143,10 +143,14 @@ OPCODE_0010
     
     CMP.W       D4,D5
     BEQ         OPCODE_MOVEAL
-    LEA         MOVE_MSG,A1         
+    BRA         OPCODE_MOVEL
+
+
+OPCODE_MOVEL
+    LEA         MOVEL_MSG,A1         
     MOVE.B      #14,D0
     TRAP        #15
-    BRA         EA_MOVEL
+    BRA         EA_MOVEL 
 
 OPCODE_MOVEAL
     LEA         MOVE_MSG,A1         
@@ -253,7 +257,6 @@ OPCODE_JSR
     LEA         JSR_MSG,A1         
     MOVE.B      #14,D0
     TRAP        #15
-    MOVE.B      #$0,(A1)+
     BRA         EA_JSR  
     
 OPCODE_RTS
@@ -361,9 +364,6 @@ OPCODE_1011
 OPCODE_1100
 
 OPCODE_1101
-*    MOVE.B    #$41,(A1)+ * A
-*    MOVE.B    #$44,(A1)+ * D
-*    MOVE.B    #$44,(A1)+ * D
 
 OPCODE_1110
 
@@ -385,19 +385,6 @@ EA_ADDI
     LSR.W    #6,D5
     BRA COMPARE
 EA_MOVEB
-    lsl.w   0
-    BRA COMPARE
-EA_MOVEL
-    lsl.w   0
-    BRA COMPARE
-EA_MOVEAL
-    lsl.w   0
-    BRA COMPARE
-EA_MOVEAW
-    lsl.w   0
-    BRA COMPARE
-
-EA_MOVEW
     CLR.L     D4
     CLR.L     D5
     MOVE.W   (A0),D4
@@ -427,6 +414,134 @@ EA_MOVEW
     JSR      MODE_JMP_TABLE     * JUMP TO MODE TABLE
 
     BRA COMPARE
+EA_MOVEL
+    CLR.L     D4
+    CLR.L     D5
+    MOVE.W   (A0),D4
+    MOVE.W   D4,D5 *Save
+    
+    JSR      BITS_2_THROUGH_0 * SAVE THE REGISTER FIRST
+    MOVE.W   D4,D3            * NEEDS TO GO IN D3 FOR REGISTER JUMP TABLE
+    
+    MOVE.W   #2,D2
+    MOVE.W   D5,D4            * RESET TO ORIGANIAL OPCODE
+    JSR      BITS_5_THROUGH_3 * GET BITS 5-3 FOR EA MODE
+    JSR      MODE_JMP_TABLE   * JUMP TO MODE TABLE
+
+
+
+    *JSR      REGISTER_JMP_TABLE
+       
+    JSR      PRINT_COMMA                           *print comma
+                                  
+    MOVE.W   D5,D4              * RESET TO ORIGANIAL OPCODE  
+    JSR      BITS_11_THROUGH_9  * SAVE THE REGISTER FIRST
+    MOVE.W   D4,D3              * NEEDS TO GO IN D3 FOR REGISTER JUMP TABLE 
+    
+    
+    MOVE.W   D5,D4              * RESET TO ORIGANIAL OPCODE
+         
+    JSR      BITS_8_THROUGH_6
+    JSR      MODE_JMP_TABLE     * JUMP TO MODE TABLE
+
+    BRA COMPARE
+
+EA_MOVEW
+    CLR.L     D4
+    CLR.L     D5
+    MOVE.W   (A0),D4
+    MOVE.W   D4,D5 *Save
+    
+    JSR      BITS_2_THROUGH_0 * SAVE THE REGISTER FIRST
+    MOVE.W   D4,D3            * NEEDS TO GO IN D3 FOR REGISTER JUMP TABLE
+    
+    MOVE.W   #3,D2
+    
+    MOVE.W   D5,D4            * RESET TO ORIGANIAL OPCODE
+    JSR      BITS_5_THROUGH_3 * GET BITS 5-3 FOR EA MODE
+    JSR      MODE_JMP_TABLE   * JUMP TO MODE TABLE
+
+
+
+    *JSR      REGISTER_JMP_TABLE
+       
+    JSR      PRINT_COMMA                           *print comma
+                                  
+    MOVE.W   D5,D4              * RESET TO ORIGANIAL OPCODE  
+    JSR      BITS_11_THROUGH_9  * SAVE THE REGISTER FIRST
+    MOVE.W   D4,D3              * NEEDS TO GO IN D3 FOR REGISTER JUMP TABLE 
+    
+    
+    MOVE.W   D5,D4              * RESET TO ORIGANIAL OPCODE
+         
+    JSR      BITS_8_THROUGH_6
+    JSR      MODE_JMP_TABLE     * JUMP TO MODE TABLE
+
+    BRA COMPARE
+    
+EA_MOVEAL
+    CLR.L     D4
+    CLR.L     D5
+    MOVE.W   (A0),D4
+    MOVE.W   D4,D5 *Save
+    
+    JSR      BITS_2_THROUGH_0 * SAVE THE REGISTER FIRST
+    MOVE.W   D4,D3            * NEEDS TO GO IN D3 FOR REGISTER JUMP TABLE
+    
+    MOVE.W   #2,D2
+    MOVE.W   D5,D4            * RESET TO ORIGANIAL OPCODE
+    JSR      BITS_5_THROUGH_3 * GET BITS 5-3 FOR EA MODE
+    JSR      MODE_JMP_TABLE   * JUMP TO MODE TABLE
+
+
+
+    *JSR      REGISTER_JMP_TABLE
+       
+    JSR      PRINT_COMMA                           *print comma
+                                  
+    MOVE.W   D5,D4              * RESET TO ORIGANIAL OPCODE  
+    JSR      BITS_11_THROUGH_9  * SAVE THE REGISTER FIRST
+    MOVE.W   D4,D3              * NEEDS TO GO IN D3 FOR REGISTER JUMP TABLE 
+    
+    
+    MOVE.W   D5,D4              * RESET TO ORIGANIAL OPCODE
+         
+    JSR      BITS_8_THROUGH_6
+    JSR      MODE_JMP_TABLE     * JUMP TO MODE TABLE
+
+    BRA COMPARE
+EA_MOVEAW
+    CLR.L     D4
+    CLR.L     D5
+    MOVE.W   (A0),D4
+    MOVE.W   D4,D5 *Save
+    
+    JSR      BITS_2_THROUGH_0 * SAVE THE REGISTER FIRST
+    MOVE.W   D4,D3            * NEEDS TO GO IN D3 FOR REGISTER JUMP TABLE
+    
+    MOVE.W   #3,D2
+    
+    MOVE.W   D5,D4            * RESET TO ORIGANIAL OPCODE
+    JSR      BITS_5_THROUGH_3 * GET BITS 5-3 FOR EA MODE
+    JSR      MODE_JMP_TABLE   * JUMP TO MODE TABLE
+
+
+
+    *JSR      REGISTER_JMP_TABLE
+       
+    JSR      PRINT_COMMA                           *print comma
+                                  
+    MOVE.W   D5,D4              * RESET TO ORIGANIAL OPCODE  
+    JSR      BITS_11_THROUGH_9  * SAVE THE REGISTER FIRST
+    MOVE.W   D4,D3              * NEEDS TO GO IN D3 FOR REGISTER JUMP TABLE 
+    
+    
+    MOVE.W   D5,D4              * RESET TO ORIGANIAL OPCODE
+         
+    JSR      BITS_8_THROUGH_6
+    JSR      MODE_JMP_TABLE     * JUMP TO MODE TABLE
+
+    BRA COMPARE   
 EA_ADDQ
     lsl.w   0
     BRA COMPARE
@@ -472,14 +587,61 @@ EA_CLR
     lsl.w   0
     BRA COMPARE
 EA_RTS
-   lsl.w   0
-   BRA COMPARE 
+   LEA         JSR_MSG,A1         
+   MOVE.B      #14,D0
+   TRAP        #15
+   BRA         EA_JSR  
+   BRA  OPCODE_JSR
+ 
 EA_JSR
-    lsl.w   0
+    * PRINT EA
+    CLR.L         D4
+    CLR.L         D5
+
+    MOVE.W      (A0),D5
+    
+    MOVE.W      D5,D4                *get the size first and store in D3 for reg. jmp table
+    JSR         BITS_2_THROUGH_0
+    MOVE.W      D4,D3
+    
+    MOVE.W      D5,D4
+    JSR         BITS_2_THROUGH_0
+    MOVE.W      D4,D2
+    
+    MOVE.W  D5,D4                   *get the mode and store in D4 for mode jump table
+    JSR     BITS_5_THROUGH_3
+    JSR     MODE_JMP_TABLE          * Jumps to mode jmp table
     BRA COMPARE
+    
 EA_LEA
-    lsl.w   0
+    * PRINT EA
+    CLR.L         D4
+    CLR.L         D5
+
+    MOVE.W      (A0),D5
+    
+    MOVE.W      D5,D4                *get the size first and store in D3 for reg. jmp table
+    JSR         BITS_2_THROUGH_0
+    MOVE.W      D4,D3
+    
+    MOVE.W      D5,D4
+    JSR         BITS_2_THROUGH_0
+    MOVE.W      D4,D2
+    
+    MOVE.W  D5,D4                   *get the mode and store in D4 for mode jump table
+    JSR     BITS_5_THROUGH_3
+    JSR     MODE_JMP_TABLE          * Jumps to mode jmp table
+    
+    JSR     PRINT_COMMA
+    
+    JSR     PRINT_A
+    
+    MOVE.W   D5,D4              * RESET TO ORIGANIAL OPCODE  
+    JSR      BITS_11_THROUGH_9  * SAVE THE REGISTER FIRST
+    MOVE.W   D4,D3              * NEEDS TO GO IN D3 FOR REGISTER JUMP TABLE 
+    JSR      REGISTER_JMP_TABLE 
     BRA COMPARE
+    
 EA_MOVEM
     lsl.w   0
     BRA COMPARE
@@ -645,6 +807,7 @@ CHECK_SIZE
 IS_LONG
    CLR.L    D1
    CLR.L    D0
+   MOVE.W   #2,D2
    MOVE.B   #'L',D1
    MOVE.B   #6,D0
    TRAP     #15
@@ -667,6 +830,7 @@ CONT    RTS
 IS_WORD
    CLR.L    D1
    CLR.L    D0
+   MOVE.W   #3,D2
    MOVE.B   #'W',D1
    MOVE.B   #6,D0
    TRAP     #15
@@ -696,9 +860,6 @@ PRINT_NEW_LINE
    TRAP     #15 
    RTS       
  
-
-
-
 
 *****************************************
 *INITIALIZES JMP TABLE FOR MODE
@@ -758,12 +919,10 @@ MODE_110
     RTS
 
 MODE_111
-
                 
                 CMP.W       #%0000000000000100,D3   * LITERAL ADDRESSING
                 BEQ         MODE_LITERAL_DATA
 
-                JSR         PRINT_$
                 CMP.W       #%0000000000000001,D3   * LONG ADDRESSING
                 BEQ         MODE_LONG_DATA
                 
@@ -774,6 +933,7 @@ MODE_111_CONT   RTS
 
 
 MODE_LONG_DATA
+                JSR         PRINT_$
                 ADD.L       #2,D7
                 MOVEA.L     D7,A1
                 MOVE.L      (A1),D1
@@ -784,11 +944,14 @@ MODE_LONG_DATA
                 JMP         MODE_111_CONT
 
 MODE_LITERAL_DATA
-                ADD.L       #2,D7
-                JMP         MODE_111_CONT
+                JSR         PRINT_HASH_TAG
+                CMP         #2,D2
+                BEQ         MODE_LONG_DATA 
+                BRA         MODE_WORD_DATA
                 
 
 MODE_WORD_DATA
+                JSR         PRINT_$
                 ADD.L       #2,D7
                 MOVEA.W     D7,A1
                 MOVE.W      (A1),D1
@@ -931,6 +1094,19 @@ REG_LITERAL
    CLR.L    D1
    CLR.L    D0
    MOVE.B   #'7',D1
+   MOVE.B   #6,D0
+   TRAP     #15
+   RTS
+
+
+
+*****************************************
+* no suprises here, just prints a #
+*****************************************   
+PRINT_HASH_TAG
+   CLR.L    D1
+   CLR.L    D0
+   MOVE.B   #'#',D1
    MOVE.B   #6,D0
    TRAP     #15
    RTS
@@ -1212,7 +1388,10 @@ ADDI_MSG        DC.B    'ADDI.',0
 ADDQ_MSG        DC.B    'ADDQ.',0
 DIVU_MSG        DC.B    'DIVU.W ',0
 
+MOVEB_MSG       DC.B    'MOVE.B ',0
+MOVEL_MSG       DC.B    'MOVE.L ',0
 MOVEW_MSG       DC.B    'MOVE.W ',0
+
 MOVE_MSG        DC.B    'MOVE.',0
 MOVEA_MSG       DC.B    'MOVEA ',0
 MOVEAW_MSG      DC.B    'MOVEA.W ',0
@@ -1228,9 +1407,11 @@ BCC_MSG         DC.B    'BCC',0
 BGT_MSG         DC.B    'BGT',0
 BLE_MSG         DC.B    'BLE',0
 
-JSR_MSG         DC.B    'JSR',0
-RTS_MSG         DC.B    'RTS',0
-LEA_MSG         DC.B    'LEA',0
+JSR_MSG         DC.B    'JSR ',0
+RTS_MSG         DC.B    'RTS ',0
+LEA_MSG         DC.B    'LEA ',0
+
+FROM_MSG        DC.B    'FROM ',0
 
 BLANK DC.B    '',0
 

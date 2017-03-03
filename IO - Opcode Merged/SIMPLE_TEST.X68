@@ -8,19 +8,29 @@
 START:                  ; first instruction of program
 
    ORG    $7000
+   
+    LEA     (A1),A0         (An),An
+    LEA     WVAR,A1        (xxx).W,An
+    LEA     LVAR,A2        (xxx).L,An
+    LEA     $1,A4
+    LEA     $123456,A7   
 
 
 *******************************************************
 * LEGAL CMP Tests                                      *     
 *******************************************************
-*    CMP.B       D1,D0       Dn,Dn
-*    CMP.W       A2,D1       An,Dn
-*    CMP.L       (A3),D2     (An),Dn
-*    CMP.B       (A4)+,D3    (An)+,Dn
-*    CMP.W       -(A5),D4    -(An),Dn
-*    CMP.L       WVAR,D5    (xxx).W,Dn
-*    CMP.B       LVAR,D6    (xxx).L,Dn
-*    CMP.L       #VBIN1,D7   #<data>,Dn
+    CMP.B       D1,D0       Dn,Dn
+    CMP.L       #VBIN1,D7   #<data>,Dn
+    MOVE.W #$123,D6
+    MOVE.L #$2468135,$54789
+    MOVE.L #$1234,D3
+    CMP.W       A2,D1       An,Dn
+    CMP.L       (A3),D2     (An),Dn
+    CMP.B       (A4)+,D3    (An)+,Dn
+    CMP.W       -(A5),D4    -(An),Dn
+    CMP.L       WVAR,D5    (xxx).W,Dn
+    CMP.B       LVAR,D6    (xxx).L,Dn
+    CMP.L       #VBIN1,D7   #<data>,Dn
 *
 *    CMPA.W      D0,A0       Dn,An
 *    CMPA.L      A0,A1       An,An
@@ -103,7 +113,7 @@ START:                  ; first instruction of program
 *    MOVEA.W       (A2)+,A4
 *    MOVEA.W       -(A3),A4  
 *    MOVEA.W       -(A3),A4
-*    MOVEA.W       #2345,A6
+    MOVEA.W       #2345,A6
 *    MOVEA.W       $00002345,A6 
 *    MOVEA.L      $00002345,A6 
 *    MOVEA.L      $00008345,A6 
@@ -112,30 +122,30 @@ START:                  ; first instruction of program
 ********************************************************
 * LEGAL Move Tests                                     *     
 ********************************************************
-    MOVE.L $1234,$5678
-    MOVE.W $1234,$12345678
-    MOVE.W $12345678, $246810
-*    MOVE.W #$123,D6
-*    MOVE.L #$2468135,$54789
-*    MOVE.L #$1234,D3
-    MOVE.L  D1,D2
-    MOVE.W  A4, (A5)
-    MOVE.L  (A5)+,-(A5)
-    MOVE.B  BVAR, D0           <ea>,Dn
-    MOVE.W  WVAR, D1
-*    MOVE.L  #LVAR, D2
-    MOVE.B  BVAR, (A0)         <ea>,(An)
-    MOVE.W  WVAR, (A1)
-*    MOVE.L  #LVAR, (A2)
-*    MOVE.B  #BVAR, (A3)+       <ea>,(An)+
-    MOVE.W  WVAR, (A4)+
-    MOVE.L  LVAR, (A5)+
-    MOVE.B  BVAR, -(A0)        <ea>,-(An)
-    MOVE.W  WVAR, -(A2)
-*    MOVE.L  #LVAR, -(A4)
-    MOVE.B  BVAR, WVAR        <ea>,(xxx).W
-    MOVE.W  WVAR, LVAR        <ea>,(xxx).L
-    MOVE.L  ZVAR, $00F00200    <ea>,#<data>
+*    MOVE.L $1234,$5678
+*    MOVE.W $1234,$12345678
+*    MOVE.W $12345678, $246810
+    MOVE.W #$123,D6
+    MOVE.L #$2468135,$54789
+    MOVE.L #$1234,D3
+*    MOVE.L  D1,D2
+*    MOVE.W  A4, (A5)
+*    MOVE.L  (A5)+,-(A5)
+*    MOVE.B  BVAR, D0           <ea>,Dn
+*    MOVE.W  WVAR, D1
+    MOVE.L  #LVAR, D2
+*    MOVE.B  BVAR, (A0)         <ea>,(An)
+*    MOVE.W  WVAR, (A1)
+    MOVE.L  #LVAR, (A2)
+    MOVE.B  #BVAR, (A3)+       <ea>,(An)+
+*    MOVE.W  WVAR, (A4)+
+*    MOVE.L  LVAR, (A5)+
+*    MOVE.B  BVAR, -(A0)        <ea>,-(An)
+*    MOVE.W  WVAR, -(A2)
+    MOVE.L  #LVAR, -(A4)
+*    MOVE.B  BVAR, WVAR        <ea>,(xxx).W
+*    MOVE.W  WVAR, LVAR        <ea>,(xxx).L
+*    MOVE.L  ZVAR, $00F00200    <ea>,#<data>
 
 * Put program code here
 
