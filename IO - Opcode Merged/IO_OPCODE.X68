@@ -18,6 +18,7 @@ START:                  ; first instruction of program
 
 *____________Asking for START ADDRESS__________________
 REDO             LEA      START_ADDR,A1
+                 MOVE.B   #14,D0
                  TRAP     #15
                  MOVE.L   #$0,A1
                  MOVE.B   #2,D0
@@ -87,13 +88,14 @@ END_LOOP
                CMP.L            D6,D7       *D7 HOLDS STARTING ADDR, D6 HOLDS ENDING ADDR
                BGT              RESTART
 *______________________YOUR CODE STARTS HERE!!!!!!!!!!___________________
-
+                MOVE.B      #$0,$150
 
 OpCodeInterpreter
-    JSR         PRINT_ADDRESS_HEX
-    JSR         PRINT_SPACE
-    MOVEA.L     D7,A0
-    MOVEM.L     D1-D7/A2-A6,-(SP)       ; push unused registers to stack
+                JMP         SCREEN_COUNTER
+OP_BEGINNING    JSR         PRINT_ADDRESS_HEX
+                JSR         PRINT_SPACE
+                MOVEA.L     D7,A0
+                MOVEM.L     D1-D7/A2-A6,-(SP)       ; push unused registers to stack
     
 shift           EQU         12                      
     LEA         JMP_TABLE,A3       ; offset into table
@@ -121,7 +123,29 @@ JMP_TABLE
      JMP         OPCODE_1101
      JMP         OPCODE_1110
      JMP         OPCODE_1111
-
+     
+SCREEN_COUNTER
+    CLR         D5
+    MOVE.B      $150,D5
+    ADDI.B      #1,D5
+    CMP         #30,D5
+    BEQ         ASK_TO_RESET
+    MOVE.B      D5,$150
+    JMP         OP_BEGINNING
+    
+ASK_TO_RESET
+    LEA      RESET_MESSAGE,A1
+    TRAP     #15
+    MOVE.B   #5,D0
+    TRAP     #15  
+    CMP      #$59,D1
+    BEQ      DONT_RESET
+    JMP      END
+DONT_RESET
+    CLR         D5
+    MOVE.B      D5,$150
+    JSR         PRINT_NEW_LINE
+    JMP         OP_BEGINNING
 OPCODE_0000
     LEA         ADDI_MSG,A1         
     MOVE.B      #14,D0
@@ -1579,7 +1603,20 @@ COMPARE
     CMP     D6,D7
     BLT     OpCodeInterpreter
     
-    BRA     END
+    CLR      D2
+    CLR      D3
+    CLR      D4
+    CLR      D5
+    CLR      D6
+    CLR      D7
+    LEA      RESTART_MESSAGE,A1
+    TRAP     #15
+    MOVE.L   #5,D0
+    TRAP     #15  
+    CMP      #$59,D1
+    BEQ      REDO
+    
+    BRA      END
 
 
    
@@ -1712,9 +1749,9 @@ CLR_MSG         DC.B    'CLR.',0
 OR_MSG          DC.B    'OR ',0
 CMP_MSG         DC.B    'CMP.',0
 
-BCC_MSG         DC.B    'BCC ',0
-BGT_MSG         DC.B    'BGT ',0
-BLE_MSG         DC.B    'BLE ',0
+BCC_MSG         DC.B    'BCC',0
+BGT_MSG         DC.B    'BGT',0
+BLE_MSG         DC.B    'BLE',0
 
 JSR_MSG         DC.B    'JSR ',0
 RTS_MSG         DC.B    'RTS ',0
@@ -1725,7 +1762,8 @@ ARITH_SHIFT_MSG      DC.B    'AS',0
 ROTATE_SHIFT_MSG     DC.B    'RO',0
 
 MULS_MSG        DC.B    'MULS.W ',0
-
+RESET_MESSAGE   DC.B    'WOULD YOU LIKE TO CONTINUE PRINTING? (ENTER Y FOR YES)',0
+RESTART_MESSAGE DC.B    'WOULD YOU LIKE TO RESTART THE PROGRAM? (ENTER Y FOR YES)',0
 BLANK DC.B    '',0
 
 RESTART_MSG DC.B    'INVALID PUT, WOULD YOU LIKE TO END THE PROGRAM OR TRY AGAIN? (ENTER Y TO RESTART)',0
@@ -1733,7 +1771,6 @@ START_ADDR  DC.B 'Enter Starting Address (Between $00004000 && $00FF0000):',0
 END_ADDR  DC.B 'Enter Ending Address (Between $00004000 && $00FF0000):',0
 INVALID_INPUT_MES    DC.B    'INVALID INPUT, TRY AGAIN',CR,LF,0
     END    START        ; last line of source
-
 
 
 
