@@ -605,13 +605,47 @@ EA_OR
         BNE    OP_MODE_Dn_ea
         JMP    OP_MODE_ea_Dn
 EA_NOP
-    lsl.w   0
-    BRA COMPARE
+    BRA COMPARE                 * NOP IS DONE, IT DOES WHAT IT NEEDS TO
+    
 EA_CLR
-    lsl.w   0
-    BRA COMPARE
+                CLR.L     D5
+                MOVE.W   (A0),D5
+                MOVE.W   D5,D4
+                JSR      BITS_7_THROUGH_6
+                BRA      SIZE_FOR_CLR
+CONT_CLR        JSR      PRINT_SPACE 
+                MOVE.W   D5,D4
+                JSR      BITS_2_THROUGH_0 * SAVE THE REGISTER FIRST
+                MOVE.W   D4,D3            * NEEDS TO GO IN D3 FOR REGISTER JUMP TABLE
+        
+                MOVE.W   D5,D4            * RESET TO ORIGANIAL OPCODE
+                JSR      BITS_5_THROUGH_3 * GET BITS 5-3 FOR EA MODE
+                JSR      MODE_JMP_TABLE   * JUMP TO MODE TABLE
+                BRA COMPARE
+
+SIZE_FOR_CLR
+            CMP #2,D4
+            BEQ PRINT_LONG_FOR_CLR
+            
+            CMP #0,D4
+            BEQ PRINT_WORD_FOR_CLR
+            BRA PRINT_BYTE_FOR_CLR
+SI_C        BRA  CONT_CLR   
+
+PRINT_LONG_FOR_CLR
+    JSR PRINT_L
+    BRA SI_C
+
+PRINT_WORD_FOR_CLR
+    JSR PRINT_W
+    BRA SI_C
+PRINT_BYTE_FOR_CLR
+    JSR PRINT_B
+    BRA SI_C
+    
 EA_RTS
-    BRA COMPARE
+    BRA COMPARE                 * NOP IS DONE, IT DOES WHAT IT NEEDS TO
+    
 EA_JSR
     * PRINT EA
     CLR.L         D4
@@ -835,6 +869,17 @@ BITS_8_THROUGH_6
         LSR.W   #6,D4
         LSR.W   #7,D4
         RTS
+        
+************************************
+* ISOLATES BITS 7-6
+************************************          
+BITS_7_THROUGH_6
+        LSL.W   #7,D4
+        LSL.W   #1,D4
+        
+        LSR.W   #7,D4
+        LSR.W   #7,D4
+        RTS       
               
 
 ************************************
@@ -1444,7 +1489,7 @@ MOVEM_MSG       DC.B    'MOVEM ',0
 MOVEQ_MSG       DC.B    'MOVEQ ',0
 
 NOP_MSG         DC.B    'NOP ',0
-CLR_MSG         DC.B    'CLR ',0
+CLR_MSG         DC.B    'CLR.',0
 OR_MSG          DC.B    'OR ',0
 CMP_MSG         DC.B    'CMP.',0
 

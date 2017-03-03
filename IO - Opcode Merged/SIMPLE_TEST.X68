@@ -8,19 +8,40 @@
 START:                  ; first instruction of program
 
    ORG    $7000
+   
+*******************************************************
+* LEGAL CLR Tests                                      *     
+*******************************************************
+    CLR       D0    
+    CLR       (A2)        (An)
+    CLR       (A3)+       (An)+
+    CLR.B     (A7)+       (An)+
+    CLR.W     D5
+    CLR.L     -(A4)       -(An)
+    CLR       WVAR       (xxx).W
+    CLR       LVAR       (xxx).L
+    CLR       $1
+    CLR.B     D3
+    CLR.B     (A2)
+    CLR.W     $23
+    CLR.L     D3  
+    CLR.L     (A5)+
+    CLR.L     $1235   
+   
+   
 
 *******************************************************
 * LEGAL ADDQ Tests                                   *     
 *******************************************************
-    ADDQ      #3,D7
-    ADDQ      #3,A4
-    ADDQ      #3,(A4)
-    ADDQ      #3,(A3)+
-    ADDQ      #3,-(A3)
-    ADDQ      #3,$0001
-    ADDQ      #3,$FFFF
-    ADDQ      #3,$FFFF8432
-   
+*    ADDQ      #3,D7
+*    ADDQ      #3,A4
+*    ADDQ      #3,(A4)
+*    ADDQ      #3,(A3)+
+*    ADDQ      #3,-(A3)
+*    ADDQ      #3,$0001
+*    ADDQ      #3,$FFFF
+*    ADDQ      #3,$FFFF8432
+*   
    
 *******************************************************
 * LEGAL ADD Tests                                      *     
