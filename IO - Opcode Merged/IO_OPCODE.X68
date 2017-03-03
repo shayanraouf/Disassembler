@@ -390,7 +390,10 @@ EA_MOVEW
 EA_ADDQ
     lsl.w   0
     BRA COMPARE
- 
+
+*****************************************
+* EA SUBROUTINE FOR                 DIVU
+*****************************************     
 EA_DIVU
     CLR.L  D5
     MOVE.W (A0),D5
@@ -398,8 +401,7 @@ EA_DIVU
 
 
 *****************************************
-* EA SUBROUTINE FOR SUB
-* CHECKS BITS FROM 11-0
+* EA SUBROUTINE FOR                  SUB
 *****************************************    
 EA_SUB
         CLR.L  D5
@@ -468,9 +470,13 @@ JSR_SUB
 OP_MODE_ea_Dn
     * PRINT EA
     CLR.L   D4
-    MOVE.W  D5,D4
+    MOVE.W  D5,D4                *get the size first and store in D3 for reg. jmp table
+    JSR     BITS_2_THROUGH_0
+    MOVE.W  D4,D3
+    
+    MOVE.W  D5,D4                *get the mode and store in D4 for mode jump table
     JSR     BITS_5_THROUGH_3
-    JSR     MODE_JMP_TABLE
+    JSR     MODE_JMP_TABLE       * Jumps to mode jmp table
     
     JSR     PRINT_COMMA
 *     MOVE.W  D5,D4
@@ -482,6 +488,7 @@ OP_MODE_ea_Dn
     CLR.L   D4
     MOVE.W  D5,D4
     JSR     BITS_11_THROUGH_9
+    MOVE.W  D4,D3
     JSR     REGISTER_JMP_TABLE 
     
     BRA     COMPARE 
@@ -495,14 +502,21 @@ OP_MODE_Dn_ea
     CLR.L   D4
     MOVE.W  D5,D4
     JSR     BITS_11_THROUGH_9
+    MOVE.W  D4,D3
     JSR     REGISTER_JMP_TABLE
  
     JSR     PRINT_COMMA
      * PRINT EA
+     
+    MOVE.W  D5,D4                   * get the size first for register jump table, store in register D3
+    JSR     BITS_2_THROUGH_0
+    MOVE.W  D4,D3
     CLR.L   D4
-    MOVE.W  D5,D4
+    
+    MOVE.W  D5,D4                   * get the mode type and store in D4
     JSR     BITS_5_THROUGH_3
-    JSR     MODE_JMP_TABLE
+
+    JSR     MODE_JMP_TABLE * Jumps to mode jmp table
     
     BRA     COMPARE
 
@@ -645,21 +659,15 @@ M_JMP_TABLE
 
 MODE_000
     JSR         PRINT_D
-    MOVE.W      D5,D4
-    JSR         BITS_11_THROUGH_9
     JSR         REGISTER_JMP_TABLE 
     RTS
 MODE_001
     JSR         PRINT_A
-    MOVE.W      D5,D4
-    JSR         BITS_2_THROUGH_0
     JSR         REGISTER_JMP_TABLE
     RTS
 MODE_010
     JSR         PRINT_OPEN_PARAN
     JSR         PRINT_A
-    MOVE.W      D5,D4
-    JSR         BITS_2_THROUGH_0
     JSR         REGISTER_JMP_TABLE
     JSR         PRINT_CLOSE_PARAN
     RTS
@@ -667,8 +675,6 @@ MODE_010
 MODE_011
     JSR         PRINT_OPEN_PARAN
     JSR         PRINT_A
-    MOVE.W      D5,D4
-    JSR         BITS_2_THROUGH_0
     JSR         REGISTER_JMP_TABLE
     JSR         PRINT_CLOSE_PARAN
     JSR         PRINT_PLUS
@@ -677,8 +683,6 @@ MODE_100
     JSR         PRINT_MINUS
     JSR         PRINT_OPEN_PARAN
     JSR         PRINT_A
-    MOVE.W      D5,D4
-    JSR         BITS_2_THROUGH_0
     JSR         REGISTER_JMP_TABLE
     JSR         PRINT_CLOSE_PARAN
 
@@ -696,8 +700,8 @@ MODE_111
                 
                 CMP.B       #%100,D4   * LITERAL ADDRESSING
                 BEQ         MODE_LITERAL_DATA
-                JSR         PRINT_SPACE
-                
+
+                JSR         PRINT_$
                 CMP.B       #%001,D4   * LONG ADDRESSING
                 BEQ         MODE_LONG_DATA
                 
@@ -718,20 +722,25 @@ MODE_LONG_DATA
                 JMP         MODE_111_CONT
 
 MODE_LITERAL_DATA
-                ADD.L   #2,D7
-                JMP     MODE_111_CONT
+                ADD.L       #2,D7
+                JMP         MODE_111_CONT
                 
 
 MODE_WORD_DATA
-                ADD.L   #2,D7
-                JMP     MODE_111_CONT                
+                ADD.L       #2,D7
+                MOVEA.W     D7,A1
+                MOVE.W      (A1),D1
+                MOVE.B      #15,D0
+                MOVE.B      #16,D2
+                TRAP        #15
+                JMP         MODE_111_CONT                
 *****************************************
 *INITIALIZES JMP TABLE FOR MODE
 *****************************************
 REGISTER_JMP_TABLE 
     LEA REG_JMP_TABLE,A2
-    MULU #$6,D4
-    JSR 0(A2,D4)
+    MULU #$6,D3
+    JSR 0(A2,D3)
     RTS
 REG_JMP_TABLE 
     JMP     REG_000
@@ -826,6 +835,50 @@ REG_111
    RTS
 
 
+*****************************************
+* no suprises here, just prints a $
+*****************************************   
+PRINT_$
+   CLR.L    D1
+   CLR.L    D0
+   MOVE.B   #'$',D1
+   MOVE.B   #6,D0
+   TRAP     #15
+   RTS
+
+*****************************************
+* no suprises here, just prints a B
+*****************************************   
+PRINT_B
+   CLR.L    D1
+   CLR.L    D0
+   MOVE.B   #'B',D1
+   MOVE.B   #6,D0
+   TRAP     #15
+   RTS
+
+
+*****************************************
+* no suprises here, just prints a L
+*****************************************   
+PRINT_L
+   CLR.L    D1
+   CLR.L    D0
+   MOVE.B   #'L',D1
+   MOVE.B   #6,D0
+   TRAP     #15
+   RTS
+
+*****************************************
+* no suprises here, just prints a W
+*****************************************   
+PRINT_W
+   CLR.L    D1
+   CLR.L    D0
+   MOVE.B   #'W',D1
+   MOVE.B   #6,D0
+   TRAP     #15
+   RTS
 
 
 *****************************************
