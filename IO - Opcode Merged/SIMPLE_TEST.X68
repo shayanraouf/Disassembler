@@ -4,29 +4,43 @@
 * Date       :
 * Description:
 *-----------------------------------------------------------
-    ORG    $1000
+    ORG    $7000
 START:                  ; first instruction of program
 
-   ORG    $7000
+*******************************************************
+* LEGAL BGT Tests                                      *     
+*******************************************************
+    MOVE.B      #$A0, D0
+    CMP.B       D0, D1
+    BGT         BGT_TEST
+    ADD.W       LVAR,D1    (xxx).L,Dn
+    
+BGT_TEST
+    ADD.B       WVAR,D0    (xxx).W,Dn
+    CMP.B       D1, D0
+    BLT         BLT_TEST
    
+BLT_TEST
+    ADD.B       WVAR,D0    (xxx).W,Dn
+       
 *******************************************************
 * LEGAL CLR Tests                                      *     
 *******************************************************
-    CLR       D0    
-    CLR       (A2)        (An)
-    CLR       (A3)+       (An)+
-    CLR.B     (A7)+       (An)+
-    CLR.W     D5
-    CLR.L     -(A4)       -(An)
-    CLR       WVAR       (xxx).W
-    CLR       LVAR       (xxx).L
-    CLR       $1
-    CLR.B     D3
-    CLR.B     (A2)
-    CLR.W     $23
-    CLR.L     D3  
-    CLR.L     (A5)+
-    CLR.L     $1235   
+*    CLR       D0    
+*    CLR       (A2)        (An)
+*    CLR       (A3)+       (An)+
+*    CLR.B     (A7)+       (An)+
+*    CLR.W     D5
+*    CLR.L     -(A4)       -(An)
+*    CLR       WVAR       (xxx).W
+*    CLR       LVAR       (xxx).L
+*    CLR       $1
+*    CLR.B     D3
+*    CLR.B     (A2)
+*    CLR.W     $23
+*    CLR.L     D3  
+*    CLR.L     (A5)+
+*    CLR.L     $1235   
    
    
 
@@ -274,6 +288,12 @@ ZVAR    EQU $00000000
 VBIN1   EQU $FCFCFCFC
 
     END    START        ; last line of source
+
+
+
+
+
+
 
 
 

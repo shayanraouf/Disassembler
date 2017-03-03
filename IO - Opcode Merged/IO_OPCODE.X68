@@ -287,8 +287,7 @@ OPCODE_0101
 
 OPCODE_0110
     MOVE.W     (A0),D5
-    LSR.L      #7,D5
-    LSR.L      #1,D5
+    LSR.L      #8,D5
     
     MOVE.L     #%0000000001100100,D4 *BCC
     CMP.W      D4,D5
@@ -714,10 +713,15 @@ EA_BCC
     
             CMP.W     #$00,D4            * IF 8-BIT DISPLACEMENT == $00 THEN WE NEED TO LOOK AT THE 16-BIT DISPLACEMENT
             BEQ       BIT_DISPLACEMENT_16
-            BRA       BIT_DISPLACEMENT_8
+            BRA       BIT_DISPLACEMENT_32
+            
 BCC_CONT    BRA COMPARE
             
-BIT_DISPLACEMENT_8
+BIT_DISPLACEMENT_16
+        * ADD LOGIC TO READ THE REST
+        BRA  BCC_CONT          
+
+BIT_DISPLACEMENT_32
         MOVE.L      D4,D1
         MOVE.B      #15,D0
         MOVE.B      #16,D2
@@ -725,15 +729,35 @@ BIT_DISPLACEMENT_8
         CLR.L       D1
         CLR.L       D0
         CLR.L       D2            
-        BRA  BCC_CONT            
-    
-BIT_DISPLACEMENT_16
-        * ADD LOGIC TO READ THE REST
-        BRA  BCC_CONT 
+        BRA  BCC_CONT  
     
 EA_BGT
-    lsl.w   0
-    BRA COMPARE
+        CLR.L         D4             *CLEAR DATA REGISTER D4,D4 TO BE SAFE
+        CLR.L         D5
+      
+        MOVE.W      A0,D4          * MOVE THE INSTRUCTION TO D4
+        *MOVE.W      D4,D5            * SAVE IN D5 TO REUSE IF NEEDED 
+        
+        MOVE.W      (A0)+,D5        * only done for the increment...D5 is garbage
+        CLR.L       D5              * only done for the increment...D5 is garbage
+        MOVE.W      (A0),D5 * save displacement
+        ADD.W       #2,D5
+        ADD.W       D5,D4   * add displacement to the address
+        MOVE.W      (A0)+,D5        * only done for the decrement...D5 is garbage
+        CLR.L       D5              * only done for the decrement...D5 is garbage
+        
+        JSR         PRINT_SPACE
+        JSR         PRINT_$
+        
+        *JSR        BITS_7_THROUGH_0  * GET THE BITS 7-0, SAVES IT IN D4
+        MOVE.W      -(A0),D5
+        CLR.L       D5
+        CMP.W       #$00,D4            * IF 8-BIT DISPLACEMENT == $00 THEN WE NEED TO LOOK AT THE 16-BIT DISPLACEMENT
+        BEQ         BIT_DISPLACEMENT_16
+        BRA         BIT_DISPLACEMENT_32
+
+    *BRA COMPARE
+
 EA_BLT
     lsl.w   0
     BRA COMPARE
@@ -1544,6 +1568,8 @@ START_ADDR  DC.B 'Enter Starting Address (Between $00004000 && $00FF0000):',0
 END_ADDR  DC.B 'Enter Ending Address (Between $00004000 && $00FF0000):',0
 INVALID_INPUT_MES    DC.B    'INVALID INPUT, TRY AGAIN',CR,LF,0
     END    START        ; last line of source
+
+
 
 
 
