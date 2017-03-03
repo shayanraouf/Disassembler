@@ -361,7 +361,12 @@ OPCODE_1011
     MOVE.B      #14,D0
     TRAP        #15
     JSR EA_CMP
+    
 OPCODE_1100
+    LEA         MULS_MSG,A1         
+    MOVE.B      #14,D0
+    TRAP        #15
+    JSR EA_MULS
 
 OPCODE_1101
 
@@ -587,12 +592,7 @@ EA_CLR
     lsl.w   0
     BRA COMPARE
 EA_RTS
-   LEA         JSR_MSG,A1         
-   MOVE.B      #14,D0
-   TRAP        #15
-   BRA         EA_JSR  
-   BRA  OPCODE_JSR
- 
+    BRA COMPARE
 EA_JSR
     * PRINT EA
     CLR.L         D4
@@ -641,6 +641,11 @@ EA_LEA
     MOVE.W   D4,D3              * NEEDS TO GO IN D3 FOR REGISTER JUMP TABLE 
     JSR      REGISTER_JMP_TABLE 
     BRA COMPARE
+EA_MULS
+        CLR.L  D5
+        MOVE.W (A0),D5
+        JMP OP_MODE_ea_Dn  
+    
     
 EA_MOVEM
     lsl.w   0
@@ -1411,7 +1416,7 @@ JSR_MSG         DC.B    'JSR ',0
 RTS_MSG         DC.B    'RTS ',0
 LEA_MSG         DC.B    'LEA ',0
 
-FROM_MSG        DC.B    'FROM ',0
+MULS_MSG        DC.B    'MULS.W ',0
 
 BLANK DC.B    '',0
 
