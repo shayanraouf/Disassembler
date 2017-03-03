@@ -309,13 +309,13 @@ OPCODE_BGT
     LEA         BGT_MSG,A1         
     MOVE.B      #14,D0
     TRAP        #15
-    JSR EA_BGT
+    JSR EA_BCC
     
 OPCODE_BLT
     LEA         BLE_MSG,A1         
     MOVE.B      #14,D0
     TRAP        #15
-    JSR EA_BLT
+    JSR EA_BCC
     
 OPCODE_0111
     LEA         MOVEQ_MSG,A1         
@@ -504,11 +504,11 @@ EA_ADDI
     CLR.L     D4
     CLR.L     D5
     MOVE.L    #$00000600,D4
-    MOVE.W   D4,D5
-    LSL.W    #8,D5
-    LSR.W    #8,D5
-    LSR.W    #6,D5
-    BRA COMPARE
+    MOVE.W    D4,D5
+    LSL.W     #8,D5
+    LSR.W     #8,D5
+    LSR.W     #6,D5
+    BRA       COMPARE
 EA_MOVEB
     CLR.L     D4
     CLR.L     D5
@@ -827,57 +827,92 @@ EA_BCC
             MOVE.W      D4,D5            * SAVE IN D5 TO REUSE IF NEEDED 
     
             JSR        BITS_7_THROUGH_0  * GET THE BITS 7-0, SAVES IT IN D4
-    
-            CMP.W     #$00,D4            * IF 8-BIT DISPLACEMENT == $00 THEN WE NEED TO LOOK AT THE 16-BIT DISPLACEMENT
-            BEQ       BIT_DISPLACEMENT_16
-            BRA       BIT_DISPLACEMENT_32
-            
+
+            CMP.W      #$00,D4            * IF 8-BIT DISPLACEMENT == $00 THEN WE NEED TO LOOK AT THE 16-BIT DISPLACEMENT
+            BEQ        BIT_DISPLACEMENT_16
+            BRA        BIT_DISPLACEMENT_8
 BCC_CONT    BRA COMPARE
             
 BIT_DISPLACEMENT_16
-        * ADD LOGIC TO READ THE REST
-        BRA  BCC_CONT          
 
-BIT_DISPLACEMENT_32
-        MOVE.L      D4,D1
+        ADD.L       #2,D7
+        MOVE.W      (A0),D1
+        MOVE.B      #15,D0
+        MOVE.B      #16,D2
+        TRAP        #15
+
+
+        JSR         PRINT_SPACE
+        
+        MOVE.L      (A0),D5
+        LSL.L       #7,D5
+        LSL.L       #7,D5
+        LSL.L       #2,D5
+        
+        LSR.L       #7,D5
+        LSR.L       #7,D5
+        LSR.L       #2,D5
+        
+        MOVE.L      D5,D1
+        MOVE.B      #15,D0
+        MOVE.B      #16,D2
+        TRAP        #15
+        CLR.L       D1
+        CLR.L       D0
+        CLR.L       D2    
+        BRA         BCC_CONT 
+
+
+BIT_DISPLACEMENT_8
+        MOVE.B      (A0),D1
         MOVE.B      #15,D0
         MOVE.B      #16,D2
         TRAP        #15
         CLR.L       D1
         CLR.L       D0
         CLR.L       D2            
-        BRA  BCC_CONT  
+        BRA         BCC_CONT           
+
+*BIT_DISPLACEMENT_32
+*        MOVE.L      D4,D1
+*        MOVE.B      #15,D0
+*        MOVE.B      #16,D2
+*        TRAP        #15
+*        CLR.L       D1
+*        CLR.L       D0
+*        CLR.L       D2            
+*        BRA  BCC_CONT  
     
-EA_BGT
-        CLR.L         D4             *CLEAR DATA REGISTER D4,D4 TO BE SAFE
-        CLR.L         D5
-      
-        MOVE.W      A0,D4          * MOVE THE INSTRUCTION TO D4
-        *MOVE.W      D4,D5            * SAVE IN D5 TO REUSE IF NEEDED 
-        
-        MOVE.W      (A0)+,D5        * only done for the increment...D5 is garbage
-        CLR.L       D5              * only done for the increment...D5 is garbage
-        MOVE.W      (A0),D5 * save displacement
-        ADD.W       #2,D5
-        ADD.W       D5,D4   * add displacement to the address
-        MOVE.W      (A0)+,D5        * only done for the decrement...D5 is garbage
-        CLR.L       D5              * only done for the decrement...D5 is garbage
-        
-        JSR         PRINT_SPACE
-        JSR         PRINT_$
-        
-        *JSR        BITS_7_THROUGH_0  * GET THE BITS 7-0, SAVES IT IN D4
-        MOVE.W      -(A0),D5
-        CLR.L       D5
-        CMP.W       #$00,D4            * IF 8-BIT DISPLACEMENT == $00 THEN WE NEED TO LOOK AT THE 16-BIT DISPLACEMENT
-        BEQ         BIT_DISPLACEMENT_16
-        BRA         BIT_DISPLACEMENT_32
+*EA_BGT
+*        CLR.L         D4             *CLEAR DATA REGISTER D4,D4 TO BE SAFE
+*        CLR.L         D5
+*      
+*        MOVE.W      A0,D4          * MOVE THE INSTRUCTION TO D4
+*        *MOVE.W      D4,D5            * SAVE IN D5 TO REUSE IF NEEDED 
+*        
+*        MOVE.W      (A0)+,D5        * only done for the increment...D5 is garbage
+*        CLR.L       D5              * only done for the increment...D5 is garbage
+*        MOVE.W      (A0),D5 * save displacement
+*        ADD.W       #2,D5
+*        ADD.W       D5,D4   * add displacement to the address
+*        MOVE.W      (A0)+,D5        * only done for the decrement...D5 is garbage
+*        CLR.L       D5              * only done for the decrement...D5 is garbage
+*        
+*        JSR         PRINT_SPACE
+*        JSR         PRINT_$
+*        
+*        *JSR        BITS_7_THROUGH_0  * GET THE BITS 7-0, SAVES IT IN D4
+*        MOVE.W      -(A0),D5
+*        CLR.L       D5
+*        CMP.W       #$00,D4            * IF 8-BIT DISPLACEMENT == $00 THEN WE NEED TO LOOK AT THE 16-BIT DISPLACEMENT
+*        BEQ         BIT_DISPLACEMENT_16
+*        BRA         BIT_DISPLACEMENT_32
+*
+*    *BRA COMPARE
 
-    *BRA COMPARE
-
-EA_BLT
-    lsl.w   0
-    BRA COMPARE
+*EA_BLT
+*    lsl.w   0
+*    BRA COMPARE
 
 
     
@@ -1677,9 +1712,9 @@ CLR_MSG         DC.B    'CLR.',0
 OR_MSG          DC.B    'OR ',0
 CMP_MSG         DC.B    'CMP.',0
 
-BCC_MSG         DC.B    'BCC',0
-BGT_MSG         DC.B    'BGT',0
-BLE_MSG         DC.B    'BLE',0
+BCC_MSG         DC.B    'BCC ',0
+BGT_MSG         DC.B    'BGT ',0
+BLE_MSG         DC.B    'BLE ',0
 
 JSR_MSG         DC.B    'JSR ',0
 RTS_MSG         DC.B    'RTS ',0
@@ -1698,6 +1733,7 @@ START_ADDR  DC.B 'Enter Starting Address (Between $00004000 && $00FF0000):',0
 END_ADDR  DC.B 'Enter Ending Address (Between $00004000 && $00FF0000):',0
 INVALID_INPUT_MES    DC.B    'INVALID INPUT, TRY AGAIN',CR,LF,0
     END    START        ; last line of source
+
 
 
 

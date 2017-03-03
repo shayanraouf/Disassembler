@@ -7,6 +7,49 @@
     ORG    $7000
 START:                  ; first instruction of program
 
+
+
+
+********************************************************
+* LEGAL CMP/CMPA and Bcc Tests                         *     
+********************************************************
+    CMP.B       D1,D0       Dn,Dn
+    BGT         B1a
+B1a    
+    CMP.W       A2,D1       An,Dn
+    BLE         B2a
+B2a
+    CMP.L       (A3),D2     (An),Dn
+    BVS         B3
+B3
+    CMP.B       (A4)+,D3    (An)+,Dn
+    BGT         B4
+B4
+    CMP.W       -(A5),D4    -(An),Dn
+    BGT         B5
+B5
+    CMP.L       WVAR,D5    (xxx).W,Dn
+    CMP.B       LVAR,D6    (xxx).L,Dn
+    CMP.L       #VBIN1,D7   #<data>,Dn
+
+*    CMPA.W      D0,A0       Dn,An
+*    CMPA.L      A0,A1       An,An
+*    BGT         Ba1
+*Ba1
+*    CMPA.W      (A1),A2     (An),An
+*    BLE         Ba2
+*Ba2
+*    CMPA.L      (A2)+,A3    (An)+,An
+*    BGT         Ba3
+*Ba3
+*    CMPA.W      -(A3),A4    -(An),An
+*    BVS         Ba4
+*Ba4
+*    CMPA.L      WVAR,A5    (xxx).W,An
+*    CMPA.W      LVAR,A6    (xxx).L,An
+*    CMPA.L      #1234,A7    #<data>,An
+*
+
 *******************************************************
 * LEGAL BGT Tests                                      *     
 *******************************************************
@@ -288,6 +331,7 @@ ZVAR    EQU $00000000
 VBIN1   EQU $FCFCFCFC
 
     END    START        ; last line of source
+
 
 
 
