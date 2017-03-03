@@ -288,13 +288,14 @@ OPCODE_0101
 OPCODE_0110
     MOVE.W     (A0),D5
     LSR.L      #7,D5
+    LSR.L      #1,D5
     
-    MOVE.L     #%01100100,D4 *BCC
+    MOVE.L     #%0000000001100100,D4 *BCC
     CMP.W      D4,D5
     BEQ        OPCODE_BCC
     
     CLR.L      D4
-    MOVE.L     #%01101110,D4 *BGT
+    MOVE.L     #%0000000001101110,D4 *BGT
     CMP.W      D4,D5
     BEQ        OPCODE_BGT
     BRA        OPCODE_BLT
@@ -386,7 +387,6 @@ OPCODE_1111
 EA_ADDI
     CLR.L     D4
     CLR.L     D5
-    *MOVE.W   (A0)+,D4
     MOVE.L    #$00000600,D4
     MOVE.W   D4,D5
     LSL.W    #8,D5
@@ -704,13 +704,35 @@ EA_MOVEM
     lsl.w   0
     BRA COMPARE
 EA_BCC
-    lsl.w   0
-    BRA COMPARE
+            CLR.L         D4             *CLEAR DATA REGISTER D4,D4 TO BE SAFE
+            CLR.L         D5
+    
+            MOVE.W      (A0),D4          * MOVE THE INSTRUCTION TO D4
+            MOVE.W      D4,D5            * SAVE IN D5 TO REUSE IF NEEDED 
+    
+            JSR        BITS_7_THROUGH_0  * GET THE BITS 7-0, SAVES IT IN D4
+    
+            CMP.W     #$00,D4            * IF 8-BIT DISPLACEMENT == $00 THEN WE NEED TO LOOK AT THE 16-BIT DISPLACEMENT
+            BEQ       BIT_DISPLACEMENT_16
+            BRA       BIT_DISPLACEMENT_8
+BCC_CONT    BRA COMPARE
+            
+BIT_DISPLACEMENT_8
+        MOVE.L      D4,D1
+        MOVE.B      #15,D0
+        MOVE.B      #16,D2
+        TRAP        #15
+        CLR.L       D1
+        CLR.L       D0
+        CLR.L       D2            
+        BRA  BCC_CONT            
+    
+BIT_DISPLACEMENT_16
+        * ADD LOGIC TO READ THE REST
+        BRA  BCC_CONT 
+    
 EA_BGT
     lsl.w   0
-    *logic move isolate the bits 
-    *ISOLATE REGISTER BITS AS WELL
-
     BRA COMPARE
 EA_BLT
     lsl.w   0
@@ -882,6 +904,18 @@ BITS_7_THROUGH_6
         RTS       
               
 
+
+************************************
+* ISOLATES BITS 7-0
+************************************          
+BITS_7_THROUGH_0
+        LSL.W   #7,D4
+        LSL.W   #1,D4
+        
+        LSR.W   #7,D4
+        LSR.W   #1,D4
+        RTS       
+              
 ************************************
 * Checks the 7th bit to see the size  
 ************************************
