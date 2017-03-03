@@ -34,38 +34,38 @@ START:                  ; first instruction of program
 ********************************************************
 * LEGAL SUB Tests                                      *     
 ********************************************************
-    SUB.B       (A3),D3     (An),Dn
-    SUB.L       $7000,d0    Dn,(xxx).W
-    SUB.B       D0,WVAR    Dn,(xxx).W
-    SUB.W       WVAR,D0    (xxx).W,Dn
-    SUB.B       (A3),D3     (An),Dn
-    SUB.L       (A2),D0
-    SUB.B       (A0)+,D1    (An)+,Dn
-    SUB.B       D0,D1       Dn,Dn
-    SUB.W       D2,D3 
-    SUB.L       A1,D0       An,Dn
-    SUB.W       A4,D3
-    SUB.B       (A3),D3     (An),Dn
-    SUB.L       (A2),D0
-    SUB.B       (A0)+,D1    (An)+,Dn
-    SUB.W       (A3)+,D2
-    SUB.L       -(A1),D2    -(An),Dn
-    SUB.B       -(A2),D1    
-    SUB.W       WVAR,D0    (xxx).W,Dn
-    SUB.L       VBIN1,D2    (xxx).L,Dn
-    SUB.W       $8000,D5
-    SUB.L       $54FFF,D7
-    SUB.W       D0,A1       Dn,An
-    SUB.L       D3,A4
-    SUB.B       D3,(A3)     Dn,(An)
-    SUB.W       D0,(A2)
-    SUB.L       D1,(A0)+    Dn,(An)+
-    SUB.B       D2,(A3)+
-    SUB.W       D2,-(A1)     Dn,-(An)
-    SUB.L       D1,-(A2)
-    SUB.B       D0,WVAR    Dn,(xxx).W
-    SUB.W       D2,VBIN1    Dn,(xxx).L
-    SUB.L       D3,LVAR    Dn,(xxx).L
+*    SUB.B       (A3),D3     (An),Dn
+*    SUB.L       $7000,d0    Dn,(xxx).W
+*    SUB.B       D0,WVAR    Dn,(xxx).W
+*    SUB.W       WVAR,D0    (xxx).W,Dn
+*    SUB.B       (A3),D3     (An),Dn
+*    SUB.L       (A2),D0
+*    SUB.B       (A0)+,D1    (An)+,Dn
+*    SUB.B       D0,D1       Dn,Dn
+*    SUB.W       D2,D3 
+*    SUB.L       A1,D0       An,Dn
+*    SUB.W       A4,D3
+*    SUB.B       (A3),D3     (An),Dn
+*    SUB.L       (A2),D0
+*    SUB.B       (A0)+,D1    (An)+,Dn
+*    SUB.W       (A3)+,D2
+*    SUB.L       -(A1),D2    -(An),Dn
+*    SUB.B       -(A2),D1    
+*    SUB.W       WVAR,D0    (xxx).W,Dn
+*    SUB.L       VBIN1,D2    (xxx).L,Dn
+*    SUB.W       $8000,D5
+*    SUB.L       $54FFF,D7
+*    SUB.W       D0,A1       Dn,An
+*    SUB.L       D3,A4
+*    SUB.B       D3,(A3)     Dn,(An)
+*    SUB.W       D0,(A2)
+*    SUB.L       D1,(A0)+    Dn,(An)+
+*    SUB.B       D2,(A3)+
+*    SUB.W       D2,-(A1)     Dn,-(An)
+*    SUB.L       D1,-(A2)
+*    SUB.B       D0,WVAR    Dn,(xxx).W
+*    SUB.W       D2,VBIN1    Dn,(xxx).L
+*    SUB.L       D3,LVAR    Dn,(xxx).L
     
     
 *******************************************************
@@ -112,30 +112,30 @@ START:                  ; first instruction of program
 ********************************************************
 * LEGAL Move Tests                                     *     
 ********************************************************
-*    MOVE.L $1234,$5678
-*    MOVE.W $1234,$12345678
-*    MOVE.W $12345678, $246810
+    MOVE.L $1234,$5678
+    MOVE.W $1234,$12345678
+    MOVE.W $12345678, $246810
 *    MOVE.W #$123,D6
 *    MOVE.L #$2468135,$54789
 *    MOVE.L #$1234,D3
-*    MOVE.L  D1,D2
-*    MOVE.W  A4, (A5)
-*    MOVE.L  (A5)+,-(A5)
-*    MOVE.B  BVAR, D0           <ea>,Dn
-*    MOVE.W  WVAR, D1
+    MOVE.L  D1,D2
+    MOVE.W  A4, (A5)
+    MOVE.L  (A5)+,-(A5)
+    MOVE.B  BVAR, D0           <ea>,Dn
+    MOVE.W  WVAR, D1
 *    MOVE.L  #LVAR, D2
-*    MOVE.B  BVAR, (A0)         <ea>,(An)
-*    MOVE.W  WVAR, (A1)
+    MOVE.B  BVAR, (A0)         <ea>,(An)
+    MOVE.W  WVAR, (A1)
 *    MOVE.L  #LVAR, (A2)
 *    MOVE.B  #BVAR, (A3)+       <ea>,(An)+
-*    MOVE.W  WVAR, (A4)+
-*    MOVE.L  LVAR, (A5)+
-*    MOVE.B  BVAR, -(A0)        <ea>,-(An)
-*    MOVE.W  WVAR, -(A2)
+    MOVE.W  WVAR, (A4)+
+    MOVE.L  LVAR, (A5)+
+    MOVE.B  BVAR, -(A0)        <ea>,-(An)
+    MOVE.W  WVAR, -(A2)
 *    MOVE.L  #LVAR, -(A4)
-*    MOVE.B  BVAR, WVAR        <ea>,(xxx).W
-*    MOVE.W  WVAR, LVAR        <ea>,(xxx).L
-*    MOVE.L  ZVAR, $00F00200    <ea>,#<data>
+    MOVE.B  BVAR, WVAR        <ea>,(xxx).W
+    MOVE.W  WVAR, LVAR        <ea>,(xxx).L
+    MOVE.L  ZVAR, $00F00200    <ea>,#<data>
 
 * Put program code here
 
