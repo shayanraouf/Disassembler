@@ -583,8 +583,12 @@ EA_MOVEQ
     BRA COMPARE
 
 EA_OR
-    lsl.w   0
-    BRA COMPARE
+        CLR.L  D5
+        MOVE.W (A0),D5
+        JSR    PRINT_SPACE 
+        BTST   #8,D5            * GET THE OPMODE
+        BNE    OP_MODE_Dn_ea
+        JMP    OP_MODE_ea_Dn
 EA_NOP
     lsl.w   0
     BRA COMPARE
