@@ -345,7 +345,7 @@ OPCODE_0111
     LEA         MOVEQ_MSG,A1         
     MOVE.B      #14,D0
     TRAP        #15
-    JSR         EA_MOVEQ
+    JSR EA_MOVEQ
 OPCODE_1000
     MOVE.L     #%011,D4
     MOVE.W     (A0),D5
@@ -461,6 +461,11 @@ EA_ROTATE_SHIFT
                   JSR         PRINT_DOT
                   JSR         CHECK_SIZE
                   JSR         PRINT_SPACE
+                  MOVE.W      (A0),D4
+                  JSR         BITS_7_THROUGH_6
+                  CMP         #$11,D4
+                  BEQ         FINISH_SHIFT_TYPE
+		 
                   MOVE.W      (A0),D4
                   JSR         ISOLATE_BIT_5
                   CMP         #$0,D4
@@ -750,6 +755,7 @@ EA_MOVEQ
     MOVE.W      #$0,D4
     JSR         MODE_JMP_TABLE            
     BRA         COMPARE
+    BRA COMPARE
 
 EA_OR
         CLR.L  D5
@@ -855,8 +861,141 @@ EA_MULS
     
     
 EA_MOVEM
-    lsl.w   0
-    BRA COMPARE
+                     JSR         PRINT_DOT
+                     MOVE.W      (A0),D4
+                     MOVE.W      (A0),D5
+                     BTST        #6,D4          *CHECKING TO SEE WHAT SIZE THE OPERATION IS
+                     BEQ         MOVEM_W
+MOVEM_L              JSR        PRINT_L
+                     JMP        FIN_MOVEM_SIZE
+MOVEM_W              JSR         PRINT_W
+FIN_MOVEM_SIZE      
+                    
+                    MOVE.W      (A0)+,D4    *FOR LOOP TO ADD REGISTER NUMBERS
+                    LSL.W       #5,D4
+                    LSR.W       #8,D4
+                    LSR.W       #7,D4
+                    CMP         #0,D4
+                    BEQ         LIST_TO_EA
+                    JMP         EA_TO_LIST
+LIST_TO_EA          
+                    JSR         THE_LOOP
+                    JSR         PRINT_SPACE
+                    JSR         PRINT_SIDE_A
+                    JSR         FORWARD_SLASH_CALCULATION
+                    JSR         THE_LOOP
+                    JSR         PRINT_SIDE_D
+                    JSR         PRINT_COMMA
+                    MOVE.W      D5,D4
+                    JSR         BITS_2_THROUGH_0
+                    MOVE.W      D4,D3
+                    MOVE.W      D5,D4
+                    JSR         BITS_5_THROUGH_3
+                    JSR         MODE_JMP_TABLE
+                    SUB.L       #2,A0
+                    BRA         COMPARE
+                    
+                    
+EA_TO_LIST                              
+                    MOVE.W      D5,D4
+                    JSR         BITS_2_THROUGH_0
+                    MOVE.W      D4,D3
+                    MOVE.W      D5,D4
+                    JSR         BITS_5_THROUGH_3
+                    JSR         MODE_JMP_TABLE
+                    JSR         PRINT_COMMA
+                    MOVE.W      D5,D4
+                    JSR         THE_LOOP
+                    JSR         PRINT_SPACE
+                    JSR         PRINT_SIDE_A
+                    JSR         FORWARD_SLASH_CALCULATION
+                    JSR         THE_LOOP
+                    JSR         PRINT_SIDE_D
+                    BRA         COMPARE                    
+                    
+THE_LOOP            MOVE.B      (A0)+,D4
+                    MOVE.B      #9,D3
+                    
+                    MOVE.B      #0,D0
+                    MOVE.B      #8,D1
+GET_REGISTER_NUM    CMP         D0,D1
+                    BEQ         FIN_LOOP_1
+                    LSR.B       #1,D4
+                    BCS         ADD_REGISTER    *IF THE LAST BIT SHIFTED OUT WAS A ONE, ADD 
+NEXT1               ADD.B       #1,D0
+                    
+                    JMP         GET_REGISTER_NUM
+FIN_LOOP_1          RTS                    
+                    
+                    
+ADD_REGISTER        CMP         #9,D3
+                    BNE         NOT_EMPTY
+                    MOVE.B      D0,D3 
+NOT_EMPTY           MOVE.B      D0,D2                 
+                    JMP         NEXT1
+
+                    
+PRINT_SIDE_A
+                    CMP.B       D2,D3
+                    BEQ         PRINT_SINGLE_A
+                    CMP         #9,D3
+                    BEQ         DONT_PRINT_A                    
+                    JSR         PRINT_A
+                    MOVE.B      D3,D1
+                    ADD.B       #$30,D1
+                    MOVE.B      #6,D0
+                    TRAP        #15
+                    JSR         PRINT_HYPHEN
+                    JSR         PRINT_A
+                    MOVE.B      D2,D1
+                    ADD.B       #$30,D1
+                    MOVE.B      #6,D0
+                    TRAP        #15
+                    RTS
+ 
+PRINT_SINGLE_A
+                    CMP         #9,D3
+                    BEQ         DONT_PRINT_A
+                    JSR         PRINT_A
+                    MOVE.B      D3,D1
+                    ADD.B       #$30,D1
+                    MOVE.B      #6,D0
+                    TRAP        #15
+DONT_PRINT_A        RTS
+PRINT_SIDE_D
+                    CMP.B       D2,D3
+                    BEQ         PRINT_SINGLE_D
+                    CMP         #9,D3
+                    BEQ         DONT_PRINT_D
+                    JSR         PRINT_D
+                    MOVE.B      D3,D1
+                    ADD.B       #$30,D1
+                    MOVE.B      #6,D0
+                    TRAP        #15
+                    JSR         PRINT_HYPHEN
+                    JSR         PRINT_D
+                    MOVE.B      D2,D1
+                    ADD.B       #$30,D1
+                    MOVE.B      #6,D0
+                    TRAP        #15
+                    RTS
+ 
+PRINT_SINGLE_D
+                    CMP         #9,D3
+                    BEQ         DONT_PRINT_D
+                    JSR         PRINT_D
+                    MOVE.B      D3,D1
+                    ADD.B       #$30,D1                    
+                    MOVE.B      #6,D0
+                    TRAP        #15
+DONT_PRINT_D        RTS
+
+FORWARD_SLASH_CALCULATION
+                    CMP         #9,D3
+                    BEQ         NO_PRINT
+                    JSR         PRINT_FORWARD_SLASH
+NO_PRINT            RTS
+                   
 EA_BCC
             CLR.L         D4             *CLEAR DATA REGISTER D4,D4 TO BE SAFE
             CLR.L         D5
@@ -1063,7 +1202,7 @@ PRINT_ADDRESS_HEX
     CLR.L       D0
     CLR.L       D2
     RTS 
-
+    
 ************************************
 * ISOLATES BITS 5-3 
 ************************************    
@@ -1123,8 +1262,11 @@ BITS_7_THROUGH_6
 * ISOLATES BITS 7-0
 ************************************          
 BITS_7_THROUGH_0
-        LSL.W   #8,D4
-        LSR.W   #8,D4
+        LSL.W   #7,D4
+        LSL.W   #1,D4
+        
+        LSR.W   #7,D4
+        LSR.W   #1,D4
         RTS       
               
 ************************************
@@ -1523,7 +1665,17 @@ PRINT_A
    MOVE.B   #6,D0
    TRAP     #15
    RTS   
-   
+
+*****************************************
+* like the label says, it prints - 
+*****************************************    
+PRINT_HYPHEN
+   CLR.L    D1
+   CLR.L    D0
+   MOVE.B   #'-',D1
+   MOVE.B   #6,D0
+   TRAP     #15
+   RTS    
 *****************************************
 * prints an open paranthese 
 ***************************************** 
@@ -1580,7 +1732,16 @@ PRINT_DOT
    MOVE.B   #6,D0
    TRAP     #15
    RTS
-
+*****************************************
+* prints a /
+***************************************** 
+PRINT_FORWARD_SLASH
+   CLR.L    D1
+   CLR.L    D0
+   MOVE.B   #'/',D1
+   MOVE.B   #6,D0
+   TRAP     #15
+   RTS
 
 *****************************************
 * prints a SPACE
@@ -1794,4 +1955,5 @@ INVALID_INPUT_MES    DC.B    'INVALID INPUT, TRY AGAIN',CR,LF,0
 *~Font size~10~
 *~Tab type~1~
 *~Tab size~4~
+
 
