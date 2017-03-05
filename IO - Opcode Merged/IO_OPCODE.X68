@@ -871,7 +871,8 @@ MOVEM_L              JSR        PRINT_L
 MOVEM_W              JSR         PRINT_W
 FIN_MOVEM_SIZE      
                     
-                    MOVE.W      (A0)+,D4    *FOR LOOP TO ADD REGISTER NUMBERS
+                    MOVE.W      (A0),D4    *FOR LOOP TO ADD REGISTER NUMBERS
+                    ADD.L       #2,D7
                     LSL.W       #5,D4
                     LSR.W       #8,D4
                     LSR.W       #7,D4
@@ -913,7 +914,8 @@ EA_TO_LIST
                     JSR         PRINT_SIDE_D
                     BRA         COMPARE                    
                     
-THE_LOOP            MOVE.B      (A0)+,D4
+THE_LOOP            
+                    MOVE.B      (A0),D4
                     MOVE.B      #9,D3
                     
                     MOVE.B      #0,D0
@@ -1913,7 +1915,7 @@ MOVEW_MSG       DC.B    'MOVE.W ',0
 MOVE_MSG        DC.B    'MOVE.',0
 MOVEA_MSG       DC.B    'MOVEA ',0
 MOVEAW_MSG      DC.B    'MOVEA.W ',0
-MOVEM_MSG       DC.B    'MOVEM ',0
+MOVEM_MSG       DC.B    'MOVEM',0
 MOVEQ_MSG       DC.B    'MOVEQ ',0
 
 NOP_MSG         DC.B    'NOP ',0
@@ -1953,7 +1955,10 @@ INVALID_INPUT_MES    DC.B    'INVALID INPUT, TRY AGAIN',CR,LF,0
 
 *~Font name~Courier New~
 *~Font size~10~
+
+
+
+*~Font name~Courier New~
+*~Font size~10~
 *~Tab type~1~
 *~Tab size~4~
-
-

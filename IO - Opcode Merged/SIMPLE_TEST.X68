@@ -8,6 +8,31 @@
 START:                  ; first instruction of program
 
 
+********************************************************
+** LEGAL MOVEM Tests                                    *
+********************************************************
+     MOVEM.W     D1-D3/A0, (A0)      <list>,(An)
+     MOVEM.L     D1-D3/A1, (A6)      <list>,(An)
+     MOVEM.W     D4/A4-A7,BVAR
+     MOVEM.W     D4/A7-A4,BVAR
+     MOVEM.L     D3-D7/A6, (A4)
+     MOVEM.L      D0/A0, $12345
+     MOVEM.W      D7/A7, $12345
+     MOVEM.W     D1/A0-A1, BVAR     <list>,(xxx).W
+     MOVEM.L     D0-D4/A0-A4,(A1)  <list>,-(An)
+     MOVEM.W     A0/D7, (A7)
+     MOVEM.L     D2-D4/A4, LVAR     <list>,(xxx).L
+     MOVEM.W     D0-D7/A0-A7, LVAR
+     MOVEM.W     (A1),D1-D3/A1       (An),<list>
+     MOVEM.W     BVAR, D1/A0-A1     (xxx).W,<list>
+     MOVEM.L     (A2)+, D0-D4/A0-A4  (An)+,<list>
+     MOVEM.L     (A5)+, D2-D4/A4     (xxx).L,<list>
+     MOVEM.W     LVAR, D0/A0     (xxx).L,<list>
+     MOVEM.W     BVAR, D0/A0-A7     (xxx).L,<list>
+     MOVEM.L     WVAR, D0-D7/A0     (xxx).L,<list>
+     MOVEM.L     D0-D7/A0,-(A3)
+     MOVEM.W     D1-D4/A6-A7,-(A4)
+
 
 
 ********************************************************
@@ -331,6 +356,7 @@ ZVAR    EQU $00000000
 VBIN1   EQU $FCFCFCFC
 
     END    START        ; last line of source
+
 
 
 
