@@ -275,7 +275,8 @@ OPCODE_CLR
     LEA         CLR_MSG,A1         
     MOVE.B      #14,D0
     TRAP        #15
-    BRA         EA_CLR  
+    BRA         EA_CLR
+  
 
 OPCODE_JSR
     LEA         JSR_MSG,A1         
@@ -393,10 +394,39 @@ OPCODE_1100
     JSR EA_MULS
 
 OPCODE_1101
+    MOVE.W      (A0),D4 
+    MOVE.W      (A0),D5
+    JSR         BITS_8_THROUGH_6
+    CMP         #3,D4
+    BEQ         OPCODE_ADDA_WORD
+
+    CMP         #7,D4
+    BEQ         OPCODE_ADDA_LONG
+
     LEA         ADD_MSG,A1         
     MOVE.B      #14,D0
     TRAP        #15
     JSR EA_ADD
+
+
+OPCODE_ADDA_LONG
+    LEA         ADDA_MSG,A1         
+    MOVE.B      #14,D0
+    TRAP        #15
+    
+    JSR         PRINT_L
+    JSR         PRINT_SPACE
+    JSR         EA_ADDA
+    
+OPCODE_ADDA_WORD
+    LEA         ADDA_MSG,A1         
+    MOVE.B      #14,D0
+    TRAP        #15
+    
+    JSR         PRINT_W
+    JSR         PRINT_SPACE
+    JSR         EA_ADDA    
+    
 
 OPCODE_1110
     MOVE.W      (A0),D5         *ISOLATE THE BITS THAT MAKE
@@ -418,6 +448,41 @@ OPCODE_1111
 *Effective Addressing Section----------------------------------
 *--------------------------------------------------------------
 *--------------------------------------------------------------
+EA_ADDA
+
+    * PRINT EA
+    CLR.L   D4
+    MOVE.W      (A0),D5 
+    MOVE.W  D5,D4                *get the size first and store in D3 for reg. jmp table
+    JSR     BITS_2_THROUGH_0
+    MOVE.W  D4,D3
+    
+    MOVE.W      D5,D4
+    JSR         BITS_2_THROUGH_0
+    MOVE.W      D4,D2
+    
+    MOVE.W  D5,D4                *get the mode and store in D4 for mode jump table
+    JSR     BITS_5_THROUGH_3
+    JSR     MODE_JMP_TABLE       * Jumps to mode jmp table
+    
+    JSR     PRINT_COMMA
+*     MOVE.W  D5,D4
+*     JSR     BITS_2_THROUGH_0
+*    JSR     REGISTER_JMP_TABLE 
+    
+    * PRINT DN
+    JSR     PRINT_A  
+    CLR.L   D4
+    MOVE.W  D5,D4
+    JSR     BITS_11_THROUGH_9
+    MOVE.W  D4,D3
+    JSR     REGISTER_JMP_TABLE 
+    
+    BRA     COMPARE 
+    
+
+
+
 EA_ARITH_SHIFT
     LEA         ARITH_SHIFT_MSG,A1
     MOVE.B      #14,D0
@@ -530,14 +595,55 @@ LEFT_OR_RIGHT                   *DECIDES WHETHER TO PRINT R OR L
     BEQ         PRINT_L
     RTS    
 EA_ADDI
-    CLR.L     D4
-    CLR.L     D5
-    MOVE.L    #$00000600,D4
-    MOVE.W    D4,D5
-    LSL.W     #8,D5
-    LSR.W     #8,D5
-    LSR.W     #6,D5
-    BRA       COMPARE
+            CLR.L     D4
+            CLR.L     D5
+            *MOVE.L    #$00000600,D4
+            MOVE.W   (A0),D4
+            MOVE.W    D4,D5
+    
+            JSR       BITS_7_THROUGH_6
+            JSR       SIZE_FOR_ADDI
+CONT_ADDI   JSR       PRINT_SPACE 
+            MOVE.W    D5,D4
+            JSR       BITS_2_THROUGH_0 * SAVE THE REGISTER FIRST
+            MOVE.W    D4,D3            * NEEDS TO GO IN D3 FOR REGISTER JUMP TABLE
+        
+            MOVE.W   D5,D4            * RESET TO ORIGANIAL OPCODE
+            JSR      BITS_5_THROUGH_3 * GET BITS 5-3 FOR EA MODE
+            JSR      MODE_JMP_TABLE   * JUMP TO MODE TABLE
+            BRA COMPARE
+
+ 
+    
+ 
+    
+SIZE_FOR_ADDI
+            CMP #2,D4
+            BEQ PRINT_LONG_FOR_CLR
+            
+            CMP  #1,D4
+            BEQ  PRINT_WORD_FOR_CLR
+            BRA  PRINT_BYTE_FOR_CLR
+SI_ADDI     BRA  CONT_ADDI  
+
+PRINT_LONG_FOR_ADDI
+    *ADD.L #4,D7
+    JSR PRINT_L
+    BRA SI_C
+
+PRINT_WORD_FOR_ADDI
+    *ADD.L #2,D7
+    JSR PRINT_W
+    BRA SI_C
+PRINT_BYTE_FOR_ADDI
+    *ADD.L #2,D7
+    JSR PRINT_B
+    BRA SI_C    
+    
+    
+    
+    
+    
 EA_MOVEB
     CLR.L     D4
     CLR.L     D5
@@ -787,7 +893,7 @@ SIZE_FOR_CLR
             CMP #2,D4
             BEQ PRINT_LONG_FOR_CLR
             
-            CMP #0,D4
+            CMP #1,D4
             BEQ PRINT_WORD_FOR_CLR
             BRA PRINT_BYTE_FOR_CLR
 SI_C        BRA  CONT_CLR   
@@ -1903,6 +2009,7 @@ INTRO   DC.B    'They call us Lil Bits.',CR,LF
         DC.B    'disassmbled',CR,LF,0
         
 SUB_MSG         DC.B    'SUB.',0
+ADDA_MSG        DC.B    'ADDA.',0
 ADD_MSG         DC.B    'ADD.',0
 ADDI_MSG        DC.B    'ADDI.',0
 ADDQ_MSG        DC.B    'ADDQ.',0

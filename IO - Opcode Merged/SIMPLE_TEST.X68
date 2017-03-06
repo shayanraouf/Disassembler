@@ -8,6 +8,63 @@
 START:                  ; first instruction of program
 
 
+    ADDA.W       D0,A0           Dn,An
+    ADDA.L       D1,A1   
+    ADDA.L       A2,A3           An,An
+    ADDA.W       A3,A4
+    ADDA.W       (A0),A0         (An),An
+    ADDA.L       (A2),A2
+    ADDA.L       (A1)+,A1        (An)+,An
+    ADDA.W       (A2)+,A2
+    ADDA.W       -(A3),A2        -(An),An
+    ADDA.L       -(A2),A3
+    ADDA.L       WVAR,A0        (xxx).W,An
+    ADDA.W       WVAR,A2    
+    ADDA.W       LVAR,A3        (xxx).L,An
+    ADDA.L       LVAR,A4  
+    ADDA.W       #$23,A7
+    ADDA.L       #LVAR,A1
+    ADDA.L       #VBIN1,A5       #<data>,An
+
+
+
+
+    ADDI.B      #BVAR,D0       #<data>,Dn
+    ADDI.W      #10,D1
+    ADDI.L      #LVAR,(A1)     #<data>,An
+    ADDI.B      #$12,(A3)
+    ADDI.W      #WVAR,(A2)+    #<data>,(An)+
+    ADDI.L      #VBIN1,(A4)+
+    ADDI.B      #$FF, -(A0)     #<data>,-(An)
+    ADDI.W      #$1222,-(A5)
+    ADDI.L      #WVAR,WVAR    #<data>,(xxx).W
+    ADDI.B      #$11, LVAR     #<data>,(xxx).L
+    ADDI.L      #$12345,D7     #<data>,Dn
+
+
+
+
+
+
+    CLR       D0    
+    CLR       (A2)        (An)
+    CLR       (A3)+       (An)+
+    CLR.B     (A7)+       (An)+
+    CLR.W     D5
+    CLR.L     -(A4)       -(An)
+    CLR       WVAR       (xxx).W
+    CLR       LVAR       (xxx).L
+    CLR       $1
+    CLR.B     D3
+    CLR.B     (A2)
+    CLR.W     $23
+    CLR.L     D3  
+    CLR.L     (A5)+
+    CLR.L     $1235   
+   
+
+
+
 ********************************************************
 ** LEGAL MOVEM Tests                                    *
 ********************************************************
