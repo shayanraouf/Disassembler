@@ -499,6 +499,7 @@ EA_ARITH_SHIFT
     CMP         #$0,D4
     BEQ         SHIFT_BY_LITERAL
     JMP         SHIFT_BY_REGISTER
+    BRA         COMPARE
 EA_LOGIC_SHIFT
     LEA         LOGIC_SHIFT_MSG,A1
     MOVE.B      #14,D0
@@ -515,6 +516,7 @@ EA_LOGIC_SHIFT
     CMP         #$0,D4
     BEQ         SHIFT_BY_LITERAL
     JMP         SHIFT_BY_REGISTER
+    BRA         COMPARE
 EA_ROTATE_SHIFT
                   LEA         ROTATE_SHIFT_MSG,A1
                   MOVE.B      #14,D0
@@ -536,13 +538,14 @@ EA_ROTATE_SHIFT
                   CMP         #$0,D4
                   BEQ         SHIFT_BY_LITERAL
                   JMP         SHIFT_BY_REGISTER
+                  BRA         COMPARE
 FINISH_SHIFT_TYPE
                   MOVE.W      (A0),D4
                   JSR         BITS_2_THROUGH_0
                   MOVE.W      D4,D3
                   MOVE.W      #$0,D4
                   JSR         MODE_JMP_TABLE
-                  BRA         COMPARE
+                  RTS
                   
 
 SHIFT_BY_REGISTER
@@ -597,50 +600,52 @@ LEFT_OR_RIGHT                   *DECIDES WHETHER TO PRINT R OR L
 EA_ADDI
             CLR.L     D4
             CLR.L     D5
-            *MOVE.L    #$00000600,D4
             MOVE.W   (A0),D4
             MOVE.W    D4,D5
     
             JSR       BITS_7_THROUGH_6
-            JSR       SIZE_FOR_ADDI
+            JSR       CHECK_SIZE
 CONT_ADDI   JSR       PRINT_SPACE 
+                                    *print the immediate data part
+            JSR       PRINT_HASH_TAG
+            MOVE.W    A0,A5
+            ADDA.L    #2,A5
+            CMP       #2,D4         * FIGURE OUT IF ITS A LONG OR NOT TO KNOW HOW FAR TO READ
+            BEQ       ITS_A_LONG
+            JSR       READ_OTHER
+            JMP       FINISH_ADDI_IMMEDIATE
+ITS_A_LONG  JSR       READ_LONG
+
+FINISH_ADDI_IMMEDIATE   
+            JSR       PRINT_COMMA         
+            CLR       D4
+            CLR       D3
+
+
             MOVE.W    D5,D4
             JSR       BITS_2_THROUGH_0 * SAVE THE REGISTER FIRST
             MOVE.W    D4,D3            * NEEDS TO GO IN D3 FOR REGISTER JUMP TABLE
+            
         
             MOVE.W   D5,D4            * RESET TO ORIGANIAL OPCODE
             JSR      BITS_5_THROUGH_3 * GET BITS 5-3 FOR EA MODE
             JSR      MODE_JMP_TABLE   * JUMP TO MODE TABLE
             BRA COMPARE
 
- 
-    
- 
-    
-SIZE_FOR_ADDI
-            CMP #2,D4
-            BEQ PRINT_LONG_FOR_CLR
-            
-            CMP  #1,D4
-            BEQ  PRINT_WORD_FOR_CLR
-            BRA  PRINT_BYTE_FOR_CLR
-SI_ADDI     BRA  CONT_ADDI  
-
-PRINT_LONG_FOR_ADDI
-    *ADD.L #4,D7
-    JSR PRINT_L
-    BRA SI_C
-
-PRINT_WORD_FOR_ADDI
-    *ADD.L #2,D7
-    JSR PRINT_W
-    BRA SI_C
-PRINT_BYTE_FOR_ADDI
-    *ADD.L #2,D7
-    JSR PRINT_B
-    BRA SI_C    
-    
-    
+READ_LONG
+            MOVE.L   (A5),D3
+            JSR      PRINT_IMMEDIATE
+            RTS
+READ_OTHER  
+            MOVE.W   (A5),D3   
+            JSR      PRINT_IMMEDIATE
+            RTS
+PRINT_IMMEDIATE
+            MOVE.L   D3,D1
+            MOVE.L   #3,D0
+            TRAP     #15
+            RTS 
+        
     
     
     
@@ -979,6 +984,8 @@ FIN_MOVEM_SIZE
                     
                     MOVE.W      (A0),D4    *FOR LOOP TO ADD REGISTER NUMBERS
                     ADD.L       #2,D7
+                    MOVEA.L     A0,A5
+                    ADDA.W      #1,A5
                     LSL.W       #5,D4
                     LSR.W       #8,D4
                     LSR.W       #7,D4
@@ -1012,6 +1019,8 @@ EA_TO_LIST
                     JSR         MODE_JMP_TABLE
                     JSR         PRINT_COMMA
                     MOVE.W      D5,D4
+                    MOVEA.L     A0,A5
+                    ADDA.W      #1,A5
                     JSR         THE_LOOP
                     JSR         PRINT_SPACE
                     JSR         PRINT_SIDE_A
@@ -1021,9 +1030,9 @@ EA_TO_LIST
                     BRA         COMPARE                    
                     
 THE_LOOP            
-                    MOVE.B      (A0),D4
+                    ADDA.W      #1,A5
+                    MOVE.B      (A5),D4
                     MOVE.B      #9,D3
-                    
                     MOVE.B      #0,D0
                     MOVE.B      #8,D1
 GET_REGISTER_NUM    CMP         D0,D1
