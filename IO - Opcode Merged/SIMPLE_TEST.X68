@@ -90,11 +90,10 @@ START:                  ; first instruction of program
      MOVEM.L     D0-D7/A0,-(A3)
      MOVEM.W     D1-D4/A6-A7,-(A4)
 
-
-
 ********************************************************
 * LEGAL CMP/CMPA and Bcc Tests                         *     
 ********************************************************
+
     CMP.B       D1,D0       Dn,Dn
     BGT         B1a
 B1a    
@@ -102,7 +101,8 @@ B1a
     BLE         B2a
 B2a
     CMP.L       (A3),D2     (An),Dn
-    BVS         B3
+    BVS         B3                              * how do we display this as an error?
+
 B3
     CMP.B       (A4)+,D3    (An)+,Dn
     BGT         B4
@@ -114,39 +114,51 @@ B5
     CMP.B       LVAR,D6    (xxx).L,Dn
     CMP.L       #VBIN1,D7   #<data>,Dn
 
-*    CMPA.W      D0,A0       Dn,An
-*    CMPA.L      A0,A1       An,An
-*    BGT         Ba1
-*Ba1
-*    CMPA.W      (A1),A2     (An),An
-*    BLE         Ba2
-*Ba2
-*    CMPA.L      (A2)+,A3    (An)+,An
-*    BGT         Ba3
-*Ba3
-*    CMPA.W      -(A3),A4    -(An),An
-*    BVS         Ba4
-*Ba4
-*    CMPA.L      WVAR,A5    (xxx).W,An
-*    CMPA.W      LVAR,A6    (xxx).L,An
-*    CMPA.L      #1234,A7    #<data>,An
-*
+    CMPA.W      D0,A0       Dn,An
+    CMPA.L      A0,A1       An,An
+    BGT         Ba1
+Ba1
+    CMPA.W      (A1),A2     (An),An
+    BLE         Ba2
+Ba2
+    CMPA.L      (A2)+,A3    (An)+,An
+    BGT         Ba3
+Ba3
+    CMPA.W      -(A3),A4    -(An),An
+    BVS         Ba4                             * how do we display this as an error?
+Ba4
+    CMPA.L      WVAR,A5    (xxx).W,An
+    CMPA.W      LVAR,A6    (xxx).L,An
+    CMPA.L      #1234,A7    #<data>,An
 
-*******************************************************
-* LEGAL BGT Tests                                      *     
-*******************************************************
     MOVE.B      #$A0, D0
     CMP.B       D0, D1
-    BGT         BGT_TEST
+    BGT         BGT_TESTS
     ADD.W       LVAR,D1    (xxx).L,Dn
     
-BGT_TEST
+BGT_TESTS
     ADD.B       WVAR,D0    (xxx).W,Dn
-    CMP.B       D1, D0
-    BLT         BLT_TEST
+    CMP.B       D0, D1
+    BGT         $10
+    BGT         $FF
+    BGT         $FFFFFF00
+    BLE         BLE_TESTS
+    ADD.W       LVAR,D1    (xxx).L,Dn
    
-BLT_TEST
+BLE_TESTS
     ADD.B       WVAR,D0    (xxx).W,Dn
+    CMP.B       D0, D1
+    BLE         $10
+    BLE         $FF
+    BLE         $FFFFFF00
+    BCC         BCC_TESTS
+    ADD.W       LVAR,D1    (xxx).L,Dn
+    
+BCC_TESTS
+    ADD.B       WVAR,D0    (xxx).W,Dn
+    BCC         $10
+    BCC         $FF
+    BCC         $FFFFFF00
        
 *******************************************************
 * LEGAL CLR Tests                                      *     
@@ -413,6 +425,7 @@ ZVAR    EQU $00000000
 VBIN1   EQU $FCFCFCFC
 
     END    START        ; last line of source
+
 
 
 

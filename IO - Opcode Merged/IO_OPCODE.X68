@@ -1,8 +1,8 @@
 *-----------------------------------------------------------
-* Title      : DISSEMBLER
-* Written by : PETE
-* Date       : TODAY
-* Description: I/O
+* Title      : Disassembler
+* Written by : Peter Van, Shayan Raouf, John Fitzgerald
+* Date       : 3-10-17
+* Description: Disassembles machine code into assembly language
 *-----------------------------------------------------------
 addr1     EQU     $4000 
     ORG    $1000
@@ -139,6 +139,8 @@ ASK_TO_RESET
     MOVE.B   #5,D0
     TRAP     #15  
     CMP      #$59,D1
+    BEQ      DONT_RESET
+    CMP      #$79,D1
     BEQ      DONT_RESET
     JMP      END
 DONT_RESET
@@ -322,7 +324,7 @@ OPCODE_0110
     MOVE.L     #%0000000001101110,D4 *BGT
     CMP.W      D4,D5
     BEQ        OPCODE_BGT
-    BRA        OPCODE_BLT
+    BRA        OPCODE_BLE
     
 OPCODE_BCC
     LEA         BCC_MSG,A1         
@@ -336,7 +338,7 @@ OPCODE_BGT
     TRAP        #15
     JSR EA_BCC
     
-OPCODE_BLT
+OPCODE_BLE
     LEA         BLE_MSG,A1         
     MOVE.B      #14,D0
     TRAP        #15
@@ -1122,91 +1124,61 @@ EA_BCC
     
             JSR        BITS_7_THROUGH_0  * GET THE BITS 7-0, SAVES IT IN D4
 
-            CMP.W      #$00,D4            * IF 8-BIT DISPLACEMENT == $00 THEN WE NEED TO LOOK AT THE 16-BIT DISPLACEMENT
-            BEQ        BIT_DISPLACEMENT_16
-            BRA        BIT_DISPLACEMENT_8
+            CMP.W      #$00,D4            
+            BEQ        BIT_DISPLACEMENT_16  * IF 8-BIT DISPLACEMENT == $00 THEN WE NEED TO LOOK AT THE 16-BIT DISPLACEMENT
+            BRA        BIT_DISPLACEMENT_8   
+            
 BCC_CONT    BRA COMPARE
             
 BIT_DISPLACEMENT_16
-
-        ADD.L       #2,D7
-        MOVE.W      (A0),D1
-        MOVE.B      #15,D0
-        MOVE.B      #16,D2
-        TRAP        #15
-
-
         JSR         PRINT_SPACE
+        JSR         PRINT_$
         
-        MOVE.L      (A0),D5
-        LSL.L       #7,D5
-        LSL.L       #7,D5
-        LSL.L       #2,D5
+        CLR.L       D0              *CLEAR DATA REGISTER D0, D1
+        CLR.L       D1
         
-        LSR.L       #7,D5
-        LSR.L       #7,D5
-        LSR.L       #2,D5
+        ADD.L       #2,D7     
+      
+        MOVE.W      A0,D1           * store address of instruction
+        ADD.L       #2,A0           * move to offset
         
-        MOVE.L      D5,D1
+        MOVE.W      (A0),D0         * store offset of Bcc
+        ADD.W       #2,D0           * add two to offset
+        ADD.W       D0,D1           * add offset to stored address
         MOVE.B      #15,D0
         MOVE.B      #16,D2
         TRAP        #15
         CLR.L       D1
         CLR.L       D0
-        CLR.L       D2    
+        CLR.L       D2
+
         BRA         BCC_CONT 
 
-
 BIT_DISPLACEMENT_8
-        MOVE.B      (A0),D1
+        JSR         PRINT_SPACE
+        JSR         PRINT_$
+        
+        CLR.L       D0             *CLEAR DATA REGISTER D4,D4 TO BE SAFE
+        CLR.L       D1
+
+        MOVE.W      A0,D1           * store address of instruction
+        ADD.W       #2,A0           * move to offset
+               
+        ADD.L       #2,D7
+    
+        MOVE.W      (A0),D0         * store offset of Bcc
+        LSR.W       #8,D0           * bit shift right to only use byte
+        
+        ADD.W       #2,D0           * add two to offset
+        ADD.W       D0,D1           * add offset to stored address
         MOVE.B      #15,D0
         MOVE.B      #16,D2
         TRAP        #15
         CLR.L       D1
         CLR.L       D0
-        CLR.L       D2            
+        CLR.L       D2
+            
         BRA         BCC_CONT           
-
-*BIT_DISPLACEMENT_32
-*        MOVE.L      D4,D1
-*        MOVE.B      #15,D0
-*        MOVE.B      #16,D2
-*        TRAP        #15
-*        CLR.L       D1
-*        CLR.L       D0
-*        CLR.L       D2            
-*        BRA  BCC_CONT  
-    
-*EA_BGT
-*        CLR.L         D4             *CLEAR DATA REGISTER D4,D4 TO BE SAFE
-*        CLR.L         D5
-*      
-*        MOVE.W      A0,D4          * MOVE THE INSTRUCTION TO D4
-*        *MOVE.W      D4,D5            * SAVE IN D5 TO REUSE IF NEEDED 
-*        
-*        MOVE.W      (A0)+,D5        * only done for the increment...D5 is garbage
-*        CLR.L       D5              * only done for the increment...D5 is garbage
-*        MOVE.W      (A0),D5 * save displacement
-*        ADD.W       #2,D5
-*        ADD.W       D5,D4   * add displacement to the address
-*        MOVE.W      (A0)+,D5        * only done for the decrement...D5 is garbage
-*        CLR.L       D5              * only done for the decrement...D5 is garbage
-*        
-*        JSR         PRINT_SPACE
-*        JSR         PRINT_$
-*        
-*        *JSR        BITS_7_THROUGH_0  * GET THE BITS 7-0, SAVES IT IN D4
-*        MOVE.W      -(A0),D5
-*        CLR.L       D5
-*        CMP.W       #$00,D4            * IF 8-BIT DISPLACEMENT == $00 THEN WE NEED TO LOOK AT THE 16-BIT DISPLACEMENT
-*        BEQ         BIT_DISPLACEMENT_16
-*        BRA         BIT_DISPLACEMENT_32
-*
-*    *BRA COMPARE
-
-*EA_BLT
-*    lsl.w   0
-*    BRA COMPARE
 
 
     
@@ -1904,6 +1876,8 @@ COMPARE
     TRAP     #15  
     CMP      #$59,D1
     BEQ      REDO
+    CMP      #$79,D1
+    BEQ      REDO
     
     BRA      END
 
@@ -1997,6 +1971,8 @@ RESTART
                        TRAP     #15           
                        CMP.B    #$59,(A1)
                        BNE      END
+                       CMP.B    #$79,(A1)
+                       BNE      END
                        JMP      REDO
 FALSE
                        MOVE.B   #1,D6
@@ -2052,11 +2028,11 @@ ARITH_SHIFT_MSG      DC.B    'AS',0
 ROTATE_SHIFT_MSG     DC.B    'RO',0
 
 MULS_MSG        DC.B    'MULS.W ',0
-RESET_MESSAGE   DC.B    'WOULD YOU LIKE TO CONTINUE PRINTING? (ENTER Y FOR YES)',0
-RESTART_MESSAGE DC.B    'WOULD YOU LIKE TO RESTART THE PROGRAM? (ENTER Y FOR YES)',0
+RESET_MESSAGE   DC.B    'WOULD YOU LIKE TO CONTINUE PRINTING? (ENTER Y or y FOR YES)',0
+RESTART_MESSAGE DC.B    'WOULD YOU LIKE TO RESTART THE PROGRAM? (ENTER Y or y FOR YES)',0
 BLANK DC.B    '',0
 
-RESTART_MSG DC.B    'INVALID PUT, WOULD YOU LIKE TO END THE PROGRAM OR TRY AGAIN? (ENTER Y TO RESTART)',0
+RESTART_MSG DC.B    'INVALID PUT, WOULD YOU LIKE TO END THE PROGRAM OR TRY AGAIN? (ENTER Y or y TO RESTART)',0
 START_ADDR  DC.B 'Enter Starting Address (Between $00004000 && $00FF0000):',0
 END_ADDR  DC.B 'Enter Ending Address (Between $00004000 && $00FF0000):',0
 INVALID_INPUT_MES    DC.B    'INVALID INPUT, TRY AGAIN',CR,LF,0
@@ -2071,6 +2047,7 @@ INVALID_INPUT_MES    DC.B    'INVALID INPUT, TRY AGAIN',CR,LF,0
 
 *~Font name~Courier New~
 *~Font size~10~
+
 
 
 
