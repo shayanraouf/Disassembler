@@ -107,9 +107,9 @@ shift           EQU         12
     MULU        #6,D2                   ; Form offset
     JMP         00(A3,D2)               ; Jump indirect with index
 JMP_TABLE
-     JMP         OPCODE_0000
-     JMP         OPCODE_0001
-     JMP         OPCODE_0010
+     JMP         OPCODE_0000            *IN ALL THE SUBROUTINES IN THE JUMP TABLE
+     JMP         OPCODE_0001            *THERE WILL BE ERROR CHECKING FOR OPCODES
+     JMP         OPCODE_0010            *THAT WE HAVE NOT DEFINED
      JMP         OPCODE_0011
      JMP         OPCODE_0100
      JMP         OPCODE_0101
@@ -148,11 +148,20 @@ DONT_RESET
     MOVE.B      D5,$150
     JSR         PRINT_NEW_LINE
     JMP         OP_BEGINNING
+ERROR
+    LEA         ERROR_MSG,A1
+    MOVE.B      #14,D0
+    TRAP        #15
+    BRA         COMPARE
 OPCODE_0000
+    MOVE.W      (A0),D4
+    JSR         BITS_11_THROUGH_8
+    CMP         #6,D4
+    BNE         ERROR
     LEA         ADDI_MSG,A1         
     MOVE.B      #14,D0
     TRAP        #15
-    JSR EA_ADDI
+    JSR         EA_ADDI
     
 OPCODE_0001
     LEA         MOVEB_MSG,A1         
@@ -235,7 +244,7 @@ OPCODE_0100
     BEQ        OPCODE_NOP
 
     CLR.L      D4
-    MOVE.L     #%01000010,D4 
+    MOVE.L     #%01000010,D4 *machine code for CLR
     LSR.W      #8,D5
     CMP.W      D4,D5
     BEQ        OPCODE_CLR
@@ -243,13 +252,13 @@ OPCODE_0100
     CLR.L      D4
     CLR.L      D5
     MOVE.W     (A0),D5
-    MOVE.L     #%0100111001110101,D4
+    MOVE.L     #%0100111001110101,D4 *machine code for RTS
     CMP.W      D4,D5
     BEQ        OPCODE_RTS
     
     
     CLR.L      D4
-    MOVE.L     #%0100111010,D4
+    MOVE.L     #%0100111010,D4 *machine code for JSR
     LSR        #6,D5
     CMP.W      D4,D5
     BEQ        OPCODE_JSR
@@ -307,6 +316,16 @@ OPCODE_MOVEM
     BRA       EA_MOVEM      
  
 OPCODE_0101
+    MOVE.W      (A0),D4            * CHECKING FOR DIFFERENT OPCODES 
+    BTST        #8,D4              * IF THE OPCODE COULD POSSIBLELY BE SOMETHING OTHER THAN ADDI 
+    BNE         ERROR              * THEN WE SEND IT TO PRINT AN ERROR.
+    JSR         BITS_7_THROUGH_6
+    CMP.B         #3,D4
+    BEQ         ERROR
+    MOVE.W      (A0),D4
+    JSR         BITS_7_THROUGH_3
+    CMP.B       #26,D4
+    BEQ         ERROR
     LEA         ADDQ_MSG,A1         
     MOVE.B      #14,D0
     TRAP        #15
@@ -373,7 +392,18 @@ OPCODE_DIVU
     BRA       EA_DIVU
 
 OPCODE_1001
-
+    MOVE.W     (A0),D4
+    JSR         BITS_8_THROUGH_6
+    CMP.B       #7,D4
+    BEQ         ERROR
+    CMP.B       #3,D4
+    BEQ         ERROR
+    MOVE.W     (A0),D4
+    
+    JSR         BITS_11_THROUGH_9
+    CMP.B       #3,D4
+    BEQ         ERROR
+    
     MOVEA.L #$00000000,A1       
     CLR.L   D0
     
@@ -382,8 +412,19 @@ OPCODE_1001
     TRAP        #15
     JMP EA_SUB
 OPCODE_1010
-
+    BRA         ERROR
 OPCODE_1011
+    MOVE.W      (A0),D4
+    JSR         BITS_8_THROUGH_6
+    CMP         #0,D4
+    BNE         CO1
+    BRA         C03
+CO1 CMP.B       #1,D4
+    BNE         CO2
+    BRA         CO3
+CO2 CMP         #2,D4
+    BNE         ERROR
+CO3    
     LEA         CMP_MSG,A1         
     MOVE.B      #14,D0
     TRAP        #15
@@ -1005,28 +1046,28 @@ FIN_MOVEM_SIZE
                     LSR.W       #8,D4
                     LSR.W       #7,D4
                     CMP         #0,D4
-                    BEQ         LIST_TO_EA
-                    JMP         EA_TO_LIST
+                    BEQ         LIST_TO_EA  *DETERMINE WHETHER THE DESTINATION OPERAND OR SOURCE
+                    JMP         EA_TO_LIST  *OPERAND IS A LIST
 LIST_TO_EA          
                     JSR         THE_LOOP
-                    JSR         PRINT_SPACE
-                    JSR         PRINT_SIDE_A
+                    JSR         PRINT_SPACE         
+                    JSR         PRINT_SIDE_A        *PRINT POSSIBLE ADDRESS REGISTERS    
                     JSR         FORWARD_SLASH_CALCULATION
                     JSR         THE_LOOP
-                    JSR         PRINT_SIDE_D
+                    JSR         PRINT_SIDE_D        *PRINT POSSIBLE DATA REGISTERS 
                     JSR         PRINT_COMMA
                     MOVE.W      D5,D4
                     JSR         BITS_2_THROUGH_0
                     MOVE.W      D4,D3
                     MOVE.W      D5,D4
                     JSR         BITS_5_THROUGH_3
-                    JSR         MODE_JMP_TABLE
+                    JSR         MODE_JMP_TABLE      *PRINTS THE EFFECTIVE ADDRESS 
                     SUB.L       #2,A0
                     BRA         COMPARE
                     
                     
 EA_TO_LIST                              
-                    MOVE.W      D5,D4
+                    MOVE.W      D5,D4               *PRINTS THE EFFECTIVE ADDRESS 
                     JSR         BITS_2_THROUGH_0
                     MOVE.W      D4,D3
                     MOVE.W      D5,D4
@@ -1038,10 +1079,10 @@ EA_TO_LIST
                     ADDA.W      #1,A5
                     JSR         THE_LOOP
                     JSR         PRINT_SPACE
-                    JSR         PRINT_SIDE_A
+                    JSR         PRINT_SIDE_A        *PRINT POSSIBLE ADDRESS REGISTERS 
                     JSR         FORWARD_SLASH_CALCULATION
                     JSR         THE_LOOP
-                    JSR         PRINT_SIDE_D
+                    JSR         PRINT_SIDE_D        *PRINT POSSIBLE DATA REGISTERS 
                     BRA         COMPARE                    
                     
 THE_LOOP            
@@ -1068,9 +1109,9 @@ NOT_EMPTY           MOVE.B      D0,D2
 
                     
 PRINT_SIDE_A
-                    CMP.B       D2,D3
-                    BEQ         PRINT_SINGLE_A
-                    CMP         #9,D3
+                    CMP.B       D2,D3           *IF THERE IS MORE THAN ONE ADDRESS REGISTER
+                    BEQ         PRINT_SINGLE_A  *TO BE MOVED. THEN THIS FUNCTION WILL PRINT 
+                    CMP         #9,D3           *THOSE REGISTERS
                     BEQ         DONT_PRINT_A                    
                     JSR         PRINT_A
                     MOVE.B      D3,D1
@@ -1085,8 +1126,8 @@ PRINT_SIDE_A
                     TRAP        #15
                     RTS
  
-PRINT_SINGLE_A
-                    CMP         #9,D3
+PRINT_SINGLE_A                              *IF THERE IS ONLY ONE ADDRESS REGISTER TO BE MOVED
+                    CMP         #9,D3       *THIS FUNCTION WILL PRINT THAT REGISTER
                     BEQ         DONT_PRINT_A
                     JSR         PRINT_A
                     MOVE.B      D3,D1
@@ -1095,8 +1136,8 @@ PRINT_SINGLE_A
                     TRAP        #15
 DONT_PRINT_A        RTS
 PRINT_SIDE_D
-                    CMP.B       D2,D3
-                    BEQ         PRINT_SINGLE_D
+                    CMP.B       D2,D3        *IF THERE IS MORE THAN DATA REGISTER TO BE MOVED
+                    BEQ         PRINT_SINGLE_D* THIS FUNCTION WILL PRINT THEM
                     CMP         #9,D3
                     BEQ         DONT_PRINT_D
                     JSR         PRINT_D
@@ -1113,8 +1154,8 @@ PRINT_SIDE_D
                     RTS
  
 PRINT_SINGLE_D
-                    CMP         #9,D3
-                    BEQ         DONT_PRINT_D
+                    CMP         #9,D3       *IF THERE IS ONLY ONE DATA REGISTER THIS FUNCTION
+                    BEQ         DONT_PRINT_D* WILL PRINT IT
                     JSR         PRINT_D
                     MOVE.B      D3,D1
                     ADD.B       #$30,D1                    
@@ -1333,7 +1374,23 @@ BITS_11_THROUGH_9
         LSR.W   #6,D4
         LSR.W   #7,D4
         RTS
-
+************************************
+* ISOLATES BITS 11-8
+************************************  
+BITS_11_THROUGH_8
+        LSL.W   #4,D4
+        LSR.W   #5,D4
+        LSR.W   #7,D4
+        RTS
+        
+************************************
+* ISOLATES BITS 7-3
+************************************  
+BITS_7_THROUGH_3
+        LSL.W   #8,D4
+        LSR.W   #3,D4
+        LSR.W   #8,D4
+        RTS
 ************************************
 * ISOLATES BITS 2-0
 ************************************          
@@ -1451,10 +1508,10 @@ PRINT_NEW_LINE
 *****************************************
 *INITIALIZES JMP TABLE FOR MODE
 *****************************************
-MODE_JMP_TABLE 
-    LEA M_JMP_TABLE,A2
-    MULU #$6,D4
-    JSR 0(A2,D4)
+MODE_JMP_TABLE                              *THIS JUMP TABLE WILL TAKE INPUT REPRESENTING
+    LEA M_JMP_TABLE,A2                      *THE TYPE OF MODE ADDRESSING
+    MULU #$6,D4                             *BRANCH TO THE RIGHT SUBROUNTINES TO PRINT
+    JSR 0(A2,D4)                            *THE RIGHT THINGS OUT
     RTS
 M_JMP_TABLE 
     JMP     MODE_000
@@ -1466,8 +1523,6 @@ M_JMP_TABLE
     JMP     MODE_110
     JMP     MODE_111
     
-
-
 MODE_000
     JSR         PRINT_D
     JSR         REGISTER_JMP_TABLE 
@@ -2134,6 +2189,7 @@ LOGIC_SHIFT_MSG   DC.B    'LS',0
 ARITH_SHIFT_MSG      DC.B    'AS',0
 ROTATE_SHIFT_MSG     DC.B    'RO',0
 
+ERROR_MSG       DC.B    'UNDEFINED OP-CODE',0
 MULS_MSG        DC.B    'MULS.W ',0
 RESET_MESSAGE   DC.B    'WOULD YOU LIKE TO CONTINUE PRINTING? (ENTER Y or y FOR YES)',0
 RESTART_MESSAGE DC.B    'WOULD YOU LIKE TO RESTART THE PROGRAM? (ENTER Y or y FOR YES)',0
