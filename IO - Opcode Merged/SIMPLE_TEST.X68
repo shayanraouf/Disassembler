@@ -7,7 +7,7 @@
     ORG    $7000
 START:                  ; first instruction of program
 
-
+    ADDA.L       WVAR,A0        (xxx).W,An
     ADDA.W       D0,A0           Dn,An
     ADDA.L       D1,A1   
     ADDA.L       A2,A3           An,An

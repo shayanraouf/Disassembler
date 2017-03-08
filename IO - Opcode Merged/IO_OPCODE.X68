@@ -450,39 +450,69 @@ OPCODE_1111
 *Effective Addressing Section----------------------------------
 *--------------------------------------------------------------
 *--------------------------------------------------------------
+
+*--------------------------------------------------------------------------------------------------
 EA_ADDA
 
-    * PRINT EA
-    CLR.L   D4
-    MOVE.W      (A0),D5 
-    MOVE.W  D5,D4                *get the size first and store in D3 for reg. jmp table
-    JSR     BITS_2_THROUGH_0
-    MOVE.W  D4,D3
+    *<ea>********************************************************
+    CLR.L       D2
+    CLR.L       D3
+    CLR.L       D4
+    CLR.L       D5
     
-    MOVE.W      D5,D4
+    MOVE.W      (A0),D5 
+    MOVE.W      D5,D4                *get the size first and store in D3 for reg. jmp table
     JSR         BITS_2_THROUGH_0
+    MOVE.W      D4,D3
+    
+    MOVE.W      D5,D4  * RESET 
+    JSR         BITS_8_THROUGH_6
     MOVE.W      D4,D2
     
-    MOVE.W  D5,D4                *get the mode and store in D4 for mode jump table
-    JSR     BITS_5_THROUGH_3
-    JSR     MODE_JMP_TABLE       * Jumps to mode jmp table
+    MOVE.W      D5,D4  * RESET              *get the mode and store in D4 for mode jump table
+    JSR         BITS_5_THROUGH_3
+    JSR         MODE_JMP_TABLE       * Jumps to mode jmp table
     
-    JSR     PRINT_COMMA
-*     MOVE.W  D5,D4
-*     JSR     BITS_2_THROUGH_0
-*    JSR     REGISTER_JMP_TABLE 
+    *************************
+    JSR         PRINT_COMMA
+    *************************
     
-    * PRINT DN
+    
+    *<An>********************************************************
     JSR     PRINT_A  
     CLR.L   D4
-    MOVE.W  D5,D4
-    JSR     BITS_11_THROUGH_9
-    MOVE.W  D4,D3
-    JSR     REGISTER_JMP_TABLE 
+    CLR.L   D3
     
+    MOVE.W      (A0),D5     
+    MOVE.W      D5,D4 * RESET
+    JSR         BITS_11_THROUGH_9
+    MOVE.W      D4,D3 
+    JSR         REGISTER_JMP_TABLE 
+    
+    *JSR     EA_ADDA_INCREMENT
     BRA     COMPARE 
-    
+*--------------------------------------------------------------------------------------------------   
+EA_ADDA_INCREMENT
+                CLR.L        D4
+                MOVE.W      (A0),D4
+                JSR         BITS_8_THROUGH_6
+*                CMP         #3,D4
+*                BEQ         EA_ADDA_INCREMENT_WORD
 
+                CMP         #7,D4
+                BEQ         EA_ADDA_INCREMENT_LONG
+ADDA_INCR_CONT  RTS
+            
+
+
+EA_ADDA_INCREMENT_LONG
+    ADD.L   #4,D7
+    BRA     ADDA_INCR_CONT
+    
+EA_ADDA_INCREMENT_WORD
+    ADD.L   #2,D7
+    BRA     ADDA_INCR_CONT
+ 
 
 
 EA_ARITH_SHIFT
@@ -1522,6 +1552,9 @@ MODE_LONG_DATA
 MODE_LITERAL_DATA
                 JSR         PRINT_HASH_TAG
                 CMP         #2,D2
+                BEQ         MODE_LONG_DATA 
+                
+                CMP         #7,D2
                 BEQ         MODE_LONG_DATA 
                 BRA         MODE_WORD_DATA
                 
