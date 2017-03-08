@@ -1145,9 +1145,14 @@ BIT_DISPLACEMENT_16
         MOVE.W      (A0),D0         * store offset of Bcc
         ADD.W       #2,D0           * add two to offset
         ADD.W       D0,D1           * add offset to stored address
-        MOVE.B      #15,D0
-        MOVE.B      #16,D2
-        TRAP        #15
+        
+        MOVE.W      D1,D5
+        JSR         MY_VERSION_OF_TRAP_TASK_15        
+        
+
+*        MOVE.B      #15,D0
+*        MOVE.B      #16,D2
+*        TRAP        #15
         CLR.L       D1
         CLR.L       D0
         CLR.L       D2
@@ -1170,10 +1175,12 @@ BIT_DISPLACEMENT_8
         LSR.W       #8,D0           * bit shift right to only use byte
         
         ADD.W       #2,D0           * add two to offset
-        ADD.W       D0,D1           * add offset to stored address
-        MOVE.B      #15,D0
-        MOVE.B      #16,D2
-        TRAP        #15
+        MOVE.B      D0,D5        
+        JSR         MY_VERSION_OF_TRAP_TASK_15
+*        ADD.W       D0,D1           * add offset to stored address
+*        MOVE.B      #15,D0
+*        MOVE.B      #16,D2
+*        TRAP        #15
         CLR.L       D1
         CLR.L       D0
         CLR.L       D2
@@ -1283,13 +1290,14 @@ OP_MODE_Dn_ea
 * PRINTS THE ADDRESS IN HEX
 ************************************ 
 PRINT_ADDRESS_HEX
-    MOVE.L      D7,D1
-    MOVE.B      #15,D0
-    MOVE.B      #16,D2
-    TRAP        #15
-    CLR.L       D1
-    CLR.L       D0
-    CLR.L       D2
+    MOVE.L      D7,D5
+    JSR         MY_VERSION_OF_TRAP_TASK_15
+*    MOVE.B      #15,D0
+*    MOVE.B      #16,D2
+*    TRAP        #15
+*    CLR.L       D1
+*    CLR.L       D0
+*    CLR.L       D2
     RTS 
     
 ************************************
@@ -1502,10 +1510,12 @@ MODE_LONG_DATA
                 JSR         PRINT_$
                 ADD.L       #2,D7
                 MOVEA.L     D7,A1
-                MOVE.L      (A1),D1
-                MOVE.B      #15,D0
-                MOVE.B      #16,D2
-                TRAP        #15
+                MOVE.L      (A1),D5
+                JSR         MY_VERSION_OF_TRAP_TASK_15
+*                MOVE.L      (A1),D1
+*                MOVE.B      #15,D0
+*                MOVE.B      #16,D2
+*                TRAP        #15
                 ADD.L       #2,D7
                 JMP         MODE_111_CONT
 
@@ -1520,10 +1530,13 @@ MODE_WORD_DATA
                 JSR         PRINT_$
                 ADD.L       #2,D7
                 MOVEA.W     D7,A1
-                MOVE.W      (A1),D1
-                MOVE.B      #15,D0
-                MOVE.B      #16,D2
-                TRAP        #15
+                MOVE.L      (A1),D5
+                JSR         MY_VERSION_OF_TRAP_TASK_15
+                
+*                MOVE.W      (A1),D1
+*                MOVE.B      #15,D0
+*                MOVE.B      #16,D2
+*                TRAP        #15
                 JMP         MODE_111_CONT                
 *****************************************
 *INITIALIZES JMP TABLE FOR MODE
@@ -1882,12 +1895,78 @@ COMPARE
     BRA      END
 
 
-   
-
-
-
-
+* PRECONDITION: VALUE IS IN D5
+MY_VERSION_OF_TRAP_TASK_15
+            MOVEM.L     D0-D7,-(SP)
+            MOVE.B      #28,D4
     
+            CLR.L       D0
+            CLR.L       D2
+            CLR.L       D3
+            
+            *JSR         COUNT_ZERO
+
+            MOVE.B      #0,D3
+            *SUB.B       D0,D3
+            
+    
+MY_START    CMP.B       #8,D3
+            BEQ         MY_END
+  
+            MOVE.L      D5,D2
+            LSR.L       D4,D2
+            SUB.L       #4,D4
+            MOVE.B      #6,D0 * TRAP TASK #6
+            
+            AND.W       #$F,D2
+            
+            CMP.B       #9,D2  *IF LETTER BRANCH AND ADD #55
+            BGT         LET
+
+
+            BRA         NUM
+  
+LET         ADD.L       #55,D2           
+            MOVE.B      D2,D1
+            JMP         NEX
+            
+NUM         ADD.L       #48,D2           
+            MOVE.B      D2,D1
+            JMP         NEX
+                     
+NEX         TRAP        #15
+            ADD.L       #1,D3
+            JMP         MY_START
+                  
+MY_END      MOVEM.L     (SP)+,D0-D7
+            RTS
+
+
+COUNT_ZERO
+                    MOVE.L       D5,D4
+ 
+COUNT_ZERO_START           
+                    AND.L        #%11110000000000000000000000000000,D4
+                    CMP.B        #0,D4
+                    BNE          COUNT_ZERO_DONE
+                    ADD.B        #1,D0
+                    LSL.L        #4,D4
+                    JMP          COUNT_ZERO_START
+COUNT_ZERO_DONE     RTS       
+            
+
+            
+    
+
+*PRINT_ADDRESS_HEX
+*    MOVE.L      D7,D1
+*    MOVE.B      #15,D0
+*    MOVE.B      #16,D2
+*    TRAP        #15
+*    CLR.L       D1
+*    CLR.L       D0
+*    CLR.L       D2
+*    RTS 
 
 *_____________PRINTING_______________________
 *THE IDEA HERE IS THAT I PRINT A BYTE FROM OP-CODES,PRINT 3 BYTES FROM
@@ -2047,6 +2126,7 @@ INVALID_INPUT_MES    DC.B    'INVALID INPUT, TRY AGAIN',CR,LF,0
 
 *~Font name~Courier New~
 *~Font size~10~
+
 
 
 
