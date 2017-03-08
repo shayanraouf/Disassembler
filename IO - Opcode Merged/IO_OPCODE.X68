@@ -45,7 +45,7 @@ ENDING_INPUT     LEA      END_ADDR,A1
                MOVEA.L         #$0,A0
                MOVEA.L         #$100,A1
                MOVEA.L         #$200,A4
-
+    
                MOVEM.L         A0,-(SP)
                MOVEM.L         A1,-(SP)
 
@@ -489,30 +489,8 @@ EA_ADDA
     MOVE.W      D4,D3 
     JSR         REGISTER_JMP_TABLE 
     
-    *JSR     EA_ADDA_INCREMENT
     BRA     COMPARE 
 *--------------------------------------------------------------------------------------------------   
-EA_ADDA_INCREMENT
-                CLR.L        D4
-                MOVE.W      (A0),D4
-                JSR         BITS_8_THROUGH_6
-*                CMP         #3,D4
-*                BEQ         EA_ADDA_INCREMENT_WORD
-
-                CMP         #7,D4
-                BEQ         EA_ADDA_INCREMENT_LONG
-ADDA_INCR_CONT  RTS
-            
-
-
-EA_ADDA_INCREMENT_LONG
-    ADD.L   #4,D7
-    BRA     ADDA_INCR_CONT
-    
-EA_ADDA_INCREMENT_WORD
-    ADD.L   #2,D7
-    BRA     ADDA_INCR_CONT
- 
 
 
 EA_ARITH_SHIFT
@@ -640,13 +618,15 @@ EA_ADDI
 CONT_ADDI   JSR       PRINT_SPACE 
                                     *print the immediate data part
             JSR       PRINT_HASH_TAG
+            JSR       PRINT_$
             MOVE.W    A0,A5
             ADDA.L    #2,A5
             CMP       #2,D4         * FIGURE OUT IF ITS A LONG OR NOT TO KNOW HOW FAR TO READ
             BEQ       ITS_A_LONG
             JSR       READ_OTHER
             JMP       FINISH_ADDI_IMMEDIATE
-ITS_A_LONG  JSR       READ_LONG
+ITS_A_LONG  ADD.L     #2,D7
+            JSR       READ_LONG
 
 FINISH_ADDI_IMMEDIATE   
             JSR       PRINT_COMMA         
@@ -654,14 +634,15 @@ FINISH_ADDI_IMMEDIATE
             CLR       D3
 
 
-            MOVE.W    D5,D4
+            MOVE.W    (A0),D4
             JSR       BITS_2_THROUGH_0 * SAVE THE REGISTER FIRST
             MOVE.W    D4,D3            * NEEDS TO GO IN D3 FOR REGISTER JUMP TABLE
             
         
-            MOVE.W   D5,D4            * RESET TO ORIGANIAL OPCODE
+            MOVE.W   (A0),D4            * RESET TO ORIGANIAL OPCODE
             JSR      BITS_5_THROUGH_3 * GET BITS 5-3 FOR EA MODE
             JSR      MODE_JMP_TABLE   * JUMP TO MODE TABLE
+            ADD.L    #2,D7
             BRA COMPARE
 
 READ_LONG
@@ -673,9 +654,11 @@ READ_OTHER
             JSR      PRINT_IMMEDIATE
             RTS
 PRINT_IMMEDIATE
-            MOVE.L   D3,D1
-            MOVE.L   #3,D0
-            TRAP     #15
+*            MOVE.L   D3,D1
+*            MOVE.L   #3,D0
+*            TRAP     #15
+            MOVE.L   D3,D5
+            JSR      MY_VERSION_OF_PRINT_HEX
             RTS 
         
     
@@ -1177,7 +1160,7 @@ BIT_DISPLACEMENT_16
         ADD.W       D0,D1           * add offset to stored address
         
         MOVE.W      D1,D5
-        JSR         MY_VERSION_OF_TRAP_TASK_15        
+        JSR         MY_VERSION_OF_PRINT_HEX        
         
 
 *        MOVE.B      #15,D0
@@ -1206,7 +1189,7 @@ BIT_DISPLACEMENT_8
         
         ADD.W       #2,D0           * add two to offset
         MOVE.B      D0,D5        
-        JSR         MY_VERSION_OF_TRAP_TASK_15
+        JSR         MY_VERSION_OF_PRINT_HEX
 *        ADD.W       D0,D1           * add offset to stored address
 *        MOVE.B      #15,D0
 *        MOVE.B      #16,D2
@@ -1321,7 +1304,7 @@ OP_MODE_Dn_ea
 ************************************ 
 PRINT_ADDRESS_HEX
     MOVE.L      D7,D5
-    JSR         MY_VERSION_OF_TRAP_TASK_15
+    JSR         MY_VERSION_OF_PRINT_HEX
 *    MOVE.B      #15,D0
 *    MOVE.B      #16,D2
 *    TRAP        #15
@@ -1541,7 +1524,7 @@ MODE_LONG_DATA
                 ADD.L       #2,D7
                 MOVEA.L     D7,A1
                 MOVE.L      (A1),D5
-                JSR         MY_VERSION_OF_TRAP_TASK_15
+                JSR         MY_VERSION_OF_PRINT_HEX
 *                MOVE.L      (A1),D1
 *                MOVE.B      #15,D0
 *                MOVE.B      #16,D2
@@ -1564,7 +1547,7 @@ MODE_WORD_DATA
                 ADD.L       #2,D7
                 MOVEA.W     D7,A1
                 MOVE.L      (A1),D5
-                JSR         MY_VERSION_OF_TRAP_TASK_15
+                JSR         MY_VERSION_OF_PRINT_HEX
                 
 *                MOVE.W      (A1),D1
 *                MOVE.B      #15,D0
@@ -1929,7 +1912,7 @@ COMPARE
 
 
 * PRECONDITION: VALUE IS IN D5
-MY_VERSION_OF_TRAP_TASK_15
+MY_VERSION_OF_PRINT_HEX
             MOVEM.L     D0-D7,-(SP)
             MOVE.B      #28,D4
     
@@ -1941,6 +1924,8 @@ MY_VERSION_OF_TRAP_TASK_15
 
             MOVE.B      #0,D3
             *SUB.B       D0,D3
+            MOVE.B      #1,D6
+            
             
     
 MY_START    CMP.B       #8,D3
@@ -1951,9 +1936,18 @@ MY_START    CMP.B       #8,D3
             SUB.L       #4,D4
             MOVE.B      #6,D0 * TRAP TASK #6
             
-            AND.W       #$F,D2
+            AND.L       #%00000000000000000000000000001111,D2
             
-            CMP.B       #9,D2  *IF LETTER BRANCH AND ADD #55
+            CMP.B       #1,D6
+            BEQ         PRINT_ZERO
+            BRA         PR
+            
+PRINT_ZERO  CMP.L       #0,D2
+            BEQ         MS
+            MOVE.B      #0,D6
+            
+            
+PR          CMP.B       #9,D2  *IF LETTER BRANCH AND ADD #55
             BGT         LET
 
 
@@ -1967,8 +1961,9 @@ NUM         ADD.L       #48,D2
             MOVE.B      D2,D1
             JMP         NEX
                      
-NEX         TRAP        #15
-            ADD.L       #1,D3
+NEX
+            TRAP        #15
+MS          ADD.L       #1,D3
             JMP         MY_START
                   
 MY_END      MOVEM.L     (SP)+,D0-D7
@@ -1980,7 +1975,7 @@ COUNT_ZERO
  
 COUNT_ZERO_START           
                     AND.L        #%11110000000000000000000000000000,D4
-                    CMP.B        #0,D4
+                    CMP.L        #0,D4
                     BNE          COUNT_ZERO_DONE
                     ADD.B        #1,D0
                     LSL.L        #4,D4

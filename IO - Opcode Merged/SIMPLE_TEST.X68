@@ -7,24 +7,24 @@
     ORG    $7000
 START:                  ; first instruction of program
 
-    ADDA.L       WVAR,A0        (xxx).W,An
-    ADDA.W       D0,A0           Dn,An
-    ADDA.L       D1,A1   
-    ADDA.L       A2,A3           An,An
-    ADDA.W       A3,A4
-    ADDA.W       (A0),A0         (An),An
-    ADDA.L       (A2),A2
-    ADDA.L       (A1)+,A1        (An)+,An
-    ADDA.W       (A2)+,A2
-    ADDA.W       -(A3),A2        -(An),An
-    ADDA.L       -(A2),A3
-    ADDA.L       WVAR,A0        (xxx).W,An
-    ADDA.W       WVAR,A2    
-    ADDA.W       LVAR,A3        (xxx).L,An
-    ADDA.L       LVAR,A4  
-    ADDA.W       #$23,A7
-    ADDA.L       #LVAR,A1
-    ADDA.L       #VBIN1,A5       #<data>,An
+*    ADDA.L       WVAR,A0        (xxx).W,An
+*    ADDA.W       D0,A0           Dn,An
+*    ADDA.L       D1,A1   
+*    ADDA.L       A2,A3           An,An
+*    ADDA.W       A3,A4
+*    ADDA.W       (A0),A0         (An),An
+*    ADDA.L       (A2),A2
+*    ADDA.L       (A1)+,A1        (An)+,An
+*    ADDA.W       (A2)+,A2
+*    ADDA.W       -(A3),A2        -(An),An
+*    ADDA.L       -(A2),A3
+*    ADDA.L       WVAR,A0        (xxx).W,An
+*    ADDA.W       WVAR,A2    
+*    ADDA.W       LVAR,A3        (xxx).L,An
+*    ADDA.L       LVAR,A4  
+*    ADDA.W       #$23,A7
+*    ADDA.L       #LVAR,A1
+*    ADDA.L       #VBIN1,A5       #<data>,An
 
 
 
