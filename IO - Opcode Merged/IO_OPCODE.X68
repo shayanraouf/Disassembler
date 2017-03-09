@@ -2222,8 +2222,8 @@ LF      EQU     $0A
 NEW_LINE DC.B   '_',CR,LF
 
 INTRO   DC.B    'They call us Lil Bits.',CR,LF
-        DC.B    'You abouts to get',CR,LF
-        DC.B    'disassmbled',CR,LF,0
+        DC.B    'You abouts to get...',CR,LF
+        DC.B    'disassembled',CR,LF,0
         
 SUB_MSG         DC.B    'SUB.',0
 ADDA_MSG        DC.B    'ADDA.',0
@@ -2280,6 +2280,7 @@ INVALID_INPUT_MES    DC.B    'INVALID INPUT, TRY AGAIN',CR,LF,0
 
 *~Font name~Courier New~
 *~Font size~10~
+
 
 
 
