@@ -61,9 +61,6 @@ START:                  ; first instruction of program
     CLR.L     D3  
     CLR.L     (A5)+
     CLR.L     $1235   
-   
-
-
 
 ********************************************************
 ** LEGAL MOVEM Tests                                    *
@@ -177,22 +174,50 @@ BCC_TESTS
 *    CLR.W     $23
 *    CLR.L     D3  
 *    CLR.L     (A5)+
-*    CLR.L     $1235   
-   
-   
+*    CLR.L     $1235    
 
 *******************************************************
 * LEGAL ADDQ Tests                                   *     
 *******************************************************
-*    ADDQ      #3,D7
-*    ADDQ      #3,A4
-*    ADDQ      #3,(A4)
-*    ADDQ      #3,(A3)+
-*    ADDQ      #3,-(A3)
-*    ADDQ      #3,$0001
-*    ADDQ      #3,$FFFF
-*    ADDQ      #3,$FFFF8432
-*   
+*    ADDQ        #1,D0
+*    ADDQ        #2,A7
+*    ADDQ        #3,(A6)
+*    ADDQ        #4,(A5)+
+*    ADDQ        #5,-(A4)
+*    ADDQ        #7,$0
+*    ADDQ        #8,$1000
+*    ADDQ        #8,$8000
+*    ADDQ        #8,$FFFF0001
+*
+*    ADDQ.B      #1,D0
+*    * cannot add a byte to address register
+*    ADDQ.B      #3,(A6)
+*    ADDQ.B      #4,(A5)+
+*    ADDQ.B      #5,-(A4)
+*    ADDQ.B      #7,$0
+*    ADDQ.B      #8,$1000
+*    ADDQ.B      #8,$8000
+*    ADDQ.B      #8,$FFFF0001
+*    
+*    ADDQ.W      #1,D0
+*    ADDQ.W      #2,A7
+*    ADDQ.W      #3,(A6)
+*    ADDQ.W      #4,(A5)+
+*    ADDQ.W      #5,-(A4)
+*    ADDQ.W      #7,$0
+*    ADDQ.W      #8,$1000
+*    ADDQ.W      #8,$8000
+*    ADDQ.W      #8,$FFFF0001
+*    
+*    ADDQ.L      #1,D0
+*    ADDQ.L      #2,A7
+*    ADDQ.L      #3,(A6)
+*    ADDQ.L      #4,(A5)+
+*    ADDQ.L      #5,-(A4)
+*    ADDQ.L      #7,$0
+*    ADDQ.L      #8,$1000
+*    ADDQ.L      #8,$8000
+*    ADDQ.L      #8,$FFFF0001
    
 *******************************************************
 * LEGAL ADD Tests                                      *     
@@ -215,8 +240,6 @@ BCC_TESTS
 *    ADD.W       -(A1),D4    
 *    ADD.L       -(A2),D5   
    
-   
-   
 *******************************************************
 * LEGAL OR Tests                                   *     
 *******************************************************
@@ -235,7 +258,6 @@ BCC_TESTS
 *    OR          D4,$8000
 *    OR          D4,$1111   
    
-   
 *******************************************************
 * LEGAL MULS Tests                                     *     
 *******************************************************
@@ -248,7 +270,6 @@ BCC_TESTS
 *    MULS.W      #$234,D6       #<data>,Dn
 *    MULS        D0,D7   
    
-   
 *******************************************************
 * LEGAL JSR Tests                                      *     
 *******************************************************
@@ -257,6 +278,7 @@ BCC_TESTS
 *    JSR     (A1)        (An)
 *    JSR     WVAR       (xxx).W
 *    JSR     LVAR       (xxx).L   
+
 *******************************************************
 * LEGAL RTS Tests                                     *     
 *******************************************************
@@ -264,9 +286,6 @@ BCC_TESTS
 *        MOVE.B  D1, D1
 *        RTS
 *JUMP2   RTS *For JSR & RTS test   
-   
-   
-   
    
 ********************************************************
 * LEGAL LEA Tests                                      *     
@@ -277,7 +296,6 @@ BCC_TESTS
 *    LEA     LVAR,A2        (xxx).L,An
 *    LEA     $1,A4
 *    LEA     $123456,A7   
-
 
 *******************************************************
 * LEGAL CMP Tests                                      *     
@@ -351,6 +369,7 @@ BCC_TESTS
 *    DIVU.W      WVAR,D5        (xxx).W,Dn
 *    DIVU.W      LVAR,D6        (xxx).L,Dn
 *    DIVU.W      #$FF00,D7       #<data>,Dn
+
 *******************************************************
 * LEGAL ADDI Tests                                    *
 *******************************************************
@@ -425,6 +444,22 @@ ZVAR    EQU $00000000
 VBIN1   EQU $FCFCFCFC
 
     END    START        ; last line of source
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
