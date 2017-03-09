@@ -418,7 +418,8 @@ OPCODE_1011
     JSR         BITS_8_THROUGH_6
     CMP         #0,D4
     BNE         CO1
-    BRA         C03
+    BRA         CO3
+    
 CO1 CMP.B       #1,D4
     BNE         CO2
     BRA         CO3
@@ -864,9 +865,44 @@ EA_MOVEAW
 
     BRA COMPARE   
 EA_ADDQ
+    CLR.L  D4
     CLR.L  D5
     MOVE.W (A0),D5
-    JMP    OP_MODE_ea_ea
+    MOVE.W D5,D4
+    
+    * determine data in         bits 9-11
+    * ignore blank in           bit  8
+    * determine size in         bits 6-7
+    * determine mode in         bits 3-5
+    * determine register        bits 0-2
+    JSR       CHECK_SIZE        * determine size and print .B/W/L
+    JSR       PRINT_SPACE
+    JSR       PRINT_HASH_TAG
+    
+    JSR       BITS_11_THROUGH_9  * data (store in D4)
+    JSR       PRINT_ADDQ_IMMEDIATE
+    JSR       PRINT_COMMA
+
+    JSR       BITS_2_THROUGH_0  * register (store in D4)
+    MOVE.B    D4,D3             * copy register into D3
+    JSR       BITS_5_THROUGH_3  * mode (store in D4)
+    JSR       MODE_JMP_TABLE       * Jumps to mode jmp table
+
+    * ASK SHAYAN HOW TO PROPERLY USE MY_END (since you're not using his print hex)
+    BRA         COMPARE
+    
+*****************************************
+* EA SUBROUTINE FOR PRINTING IMMEDIATE ADDQ
+*****************************************     
+PRINT_ADDQ_IMMEDIATE
+    MOVE.B      D4,D1
+    MOVE.B      #15,D0
+    MOVE.B      #16,D2
+    TRAP        #15
+    CLR.L       D1
+    CLR.L       D0
+    CLR.L       D2
+    RTS 
 
 *****************************************
 * EA SUBROUTINE FOR                 DIVU
@@ -1137,7 +1173,7 @@ PRINT_SINGLE_A                              *IF THERE IS ONLY ONE ADDRESS REGIST
 DONT_PRINT_A        RTS
 PRINT_SIDE_D
                     CMP.B       D2,D3        *IF THERE IS MORE THAN DATA REGISTER TO BE MOVED
-                    BEQ         PRINT_SINGLE_D* THIS FUNCTION WILL PRINT THEM
+                    BEQ         PRINT_SINGLE_D * THIS FUNCTION WILL PRINT THEM
                     CMP         #9,D3
                     BEQ         DONT_PRINT_D
                     JSR         PRINT_D
@@ -1155,7 +1191,7 @@ PRINT_SIDE_D
  
 PRINT_SINGLE_D
                     CMP         #9,D3       *IF THERE IS ONLY ONE DATA REGISTER THIS FUNCTION
-                    BEQ         DONT_PRINT_D* WILL PRINT IT
+                    BEQ         DONT_PRINT_D * WILL PRINT IT
                     JSR         PRINT_D
                     MOVE.B      D3,D1
                     ADD.B       #$30,D1                    
@@ -2210,6 +2246,7 @@ INVALID_INPUT_MES    DC.B    'INVALID INPUT, TRY AGAIN',CR,LF,0
 
 *~Font name~Courier New~
 *~Font size~10~
+
 
 
 
