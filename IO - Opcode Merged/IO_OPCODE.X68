@@ -875,16 +875,20 @@ EA_ADDQ
     * determine size in         bits 6-7
     * determine mode in         bits 3-5
     * determine register        bits 0-2
-    JSR       CHECK_SIZE        * determine size and print .B/W/L
+    
+    JSR       CHECK_SIZE_ADDQ        * determine size and print .B/W/L (checks D5)
     JSR       PRINT_SPACE
     JSR       PRINT_HASH_TAG
     
+    MOVE.W    D5,D4
     JSR       BITS_11_THROUGH_9  * data (store in D4)
     JSR       PRINT_ADDQ_IMMEDIATE
     JSR       PRINT_COMMA
 
+    MOVE.W    D5,D4
     JSR       BITS_2_THROUGH_0  * register (store in D4)
     MOVE.B    D4,D3             * copy register into D3
+    MOVE.W    D5,D4
     JSR       BITS_5_THROUGH_3  * mode (store in D4)
     JSR       MODE_JMP_TABLE       * Jumps to mode jmp table
 
@@ -1501,7 +1505,24 @@ IS_BYTE_WORD
         BNE     IS_WORD
         JMP     IS_BYTE
 CONT    RTS     
-        
+
+************************************
+* Checks the 7th bit to see the size  
+************************************
+CHECK_SIZE_ADDQ
+    BTST    #7,D5
+    BNE     IS_LONG
+    JSR     IS_BYTE_WORD_ADDQ
+    RTS     
+
+************************************
+* PRINTS B AND RTS BACK 
+************************************  
+IS_BYTE_WORD_ADDQ
+        BTST    #6,D5
+        BNE     IS_BYTE     * (byte == 00)
+        JMP     IS_WORD     * (word == 01)
+        RTS             
    
 
 ******************************************
@@ -1637,7 +1658,7 @@ MODE_WORD_DATA
                 JSR         PRINT_$
                 ADD.L       #2,D7
                 MOVEA.W     D7,A1
-                MOVE.L      (A1),D5
+                MOVE.W      (A1),D5
                 JSR         MY_VERSION_OF_PRINT_HEX
                 
 *                MOVE.W      (A1),D1
@@ -2246,6 +2267,9 @@ INVALID_INPUT_MES    DC.B    'INVALID INPUT, TRY AGAIN',CR,LF,0
 
 *~Font name~Courier New~
 *~Font size~10~
+
+
+
 
 
 
