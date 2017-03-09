@@ -876,12 +876,18 @@ EA_ADDQ
     * determine mode in         bits 3-5
     * determine register        bits 0-2
     
-    JSR       CHECK_SIZE_ADDQ        * determine size and print .B/W/L (checks D5)
+    *JSR       CHECK_SIZE_ADDQ        * determine size and print .B/W/L (checks D5)
+    JSR       CHECK_SIZE             * determine size and print .B/W/L (checks D5)
     JSR       PRINT_SPACE
     JSR       PRINT_HASH_TAG
     
     MOVE.W    D5,D4
     JSR       BITS_11_THROUGH_9  * data (store in D4)
+    CMP.B     #0,D4
+    BNE       EA_ADDQ_CONT   
+    MOVE.B    #8,D4              * stores 8 when 0 is incorrectly found in ADDQ data
+    
+EA_ADDQ_CONT
     JSR       PRINT_ADDQ_IMMEDIATE
     JSR       PRINT_COMMA
 
@@ -894,6 +900,13 @@ EA_ADDQ
 
     * ASK SHAYAN HOW TO PROPERLY USE MY_END (since you're not using his print hex)
     BRA         COMPARE
+
+*****************************************
+* EA SUBROUTINE FOR STORING 8 when 0 is incorrectly found in ADDQ
+***************************************** 
+EA_ADDQ_STORE_8    
+    MOVE.B    #8,D4
+    RTS
     
 *****************************************
 * EA SUBROUTINE FOR PRINTING IMMEDIATE ADDQ
