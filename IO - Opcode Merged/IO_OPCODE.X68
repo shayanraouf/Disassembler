@@ -432,10 +432,25 @@ CO3
     JSR EA_CMP
     
 OPCODE_1100
+    MOVE.W      (A0),D4 
+    MOVE.W      (A0),D5
+    JSR         BITS_8_THROUGH_6
+    CMP         #7,D4
+    BEQ         OPCODE_AND
+    
     LEA         MULS_MSG,A1         
     MOVE.B      #14,D0
     TRAP        #15
-    JSR EA_MULS
+    JSR         EA_MULS
+
+
+
+OPCODE_AND
+    LEA         AND_MSG,A1         
+    MOVE.B      #14,D0
+    TRAP        #15
+    JSR         EA_AND
+
 
 OPCODE_1101
     MOVE.W      (A0),D4 
@@ -450,7 +465,7 @@ OPCODE_1101
     LEA         ADD_MSG,A1         
     MOVE.B      #14,D0
     TRAP        #15
-    JSR EA_ADD
+    JSR         EA_ADD
 
 
 OPCODE_ADDA_LONG
@@ -486,7 +501,7 @@ OPCODE_1110
     BEQ         EA_ROTATE_SHIFT
     
 OPCODE_1111
-
+    BRA         ERROR 
 
 
 *Effective Addressing Section----------------------------------
@@ -929,6 +944,9 @@ EA_DIVU
     MOVE.W (A0),D5
     JMP    OP_MODE_ea_Dn
 
+*****************************************
+* EA SUBROUTINE FOR                 ADD
+*****************************************    
 
 EA_ADD
         CLR.L  D5
@@ -938,6 +956,21 @@ EA_ADD
         BTST   #8,D5            * GET THE OPMODE
         BNE    OP_MODE_Dn_ea
         JMP    OP_MODE_ea_Dn
+
+
+*****************************************
+* EA SUBROUTINE FOR                 AND
+*****************************************            
+EA_AND
+        CLR.L  D5
+        MOVE.W (A0),D5
+        JSR    CHECK_SIZE       * CHECKS THE SIZE AND PRINTS
+        JSR    PRINT_SPACE 
+        BTST   #8,D5            * GET THE OPMODE
+        BNE    OP_MODE_Dn_ea
+        JMP    OP_MODE_ea_Dn
+        
+        
 
 
 *****************************************
@@ -951,13 +984,21 @@ EA_SUB
         BTST   #8,D5            * GET THE OPMODE
         BNE    OP_MODE_Dn_ea
         JMP    OP_MODE_ea_Dn
-      
+
+*****************************************
+* EA SUBROUTINE FOR                 CMP
+*****************************************          
 EA_CMP
     CLR.L  D5
     MOVE.W (A0),D5
     JSR    CHECK_SIZE       * CHECKS THE SIZE AND PRINTS
     JSR    PRINT_SPACE 
     JMP    OP_MODE_ea_Dn
+    
+    
+*****************************************
+* EA SUBROUTINE FOR                 MOVEQ
+*****************************************        
 EA_MOVEQ
     JSR         PRINT_HASH_TAG
     MOVE.W      (A0),D5
@@ -977,6 +1018,9 @@ EA_MOVEQ
     BRA         COMPARE
     BRA COMPARE
 
+*****************************************
+* EA SUBROUTINE FOR                 OR
+*****************************************    
 EA_OR
         CLR.L  D5
         MOVE.W (A0),D5
@@ -984,9 +1028,17 @@ EA_OR
         BTST   #8,D5            * GET THE OPMODE
         BNE    OP_MODE_Dn_ea
         JMP    OP_MODE_ea_Dn
+        
+*****************************************
+* EA SUBROUTINE FOR                 NOP
+*****************************************            
 EA_NOP
     BRA COMPARE                 * NOP IS DONE, IT DOES WHAT IT NEEDS TO
-    
+
+
+*****************************************
+* EA SUBROUTINE FOR                 CLR
+*****************************************        
 EA_CLR
                 CLR.L     D5
                 MOVE.W   (A0),D5
@@ -2232,6 +2284,8 @@ ADDI_MSG        DC.B    'ADDI.',0
 ADDQ_MSG        DC.B    'ADDQ.',0
 DIVU_MSG        DC.B    'DIVU.W ',0
 
+AND_MSG         DC.B    'AND.',0
+
 MOVEB_MSG       DC.B    'MOVE.B ',0
 MOVEL_MSG       DC.B    'MOVE.L ',0
 MOVEW_MSG       DC.B    'MOVE.W ',0
@@ -2280,6 +2334,7 @@ INVALID_INPUT_MES    DC.B    'INVALID INPUT, TRY AGAIN',CR,LF,0
 
 *~Font name~Courier New~
 *~Font size~10~
+
 
 
 
