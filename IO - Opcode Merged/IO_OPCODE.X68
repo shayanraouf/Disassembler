@@ -393,14 +393,14 @@ OPCODE_DIVU
 
 OPCODE_1001
     MOVE.W     (A0),D4
-    JSR         BITS_8_THROUGH_6
+    JSR         BITS_8_THROUGH_6        * determine destination mode
     CMP.B       #7,D4
     BEQ         ERROR
     CMP.B       #3,D4
     BEQ         ERROR
     MOVE.W     (A0),D4
     
-    JSR         BITS_11_THROUGH_9
+    JSR         BITS_11_THROUGH_9       * determine destination register
     CMP.B       #3,D4
     BEQ         ERROR
     
@@ -2398,14 +2398,14 @@ MOVEL_MSG       DC.B    'MOVE.L ',0
 MOVEW_MSG       DC.B    'MOVE.W ',0
 
 MOVE_MSG        DC.B    'MOVE.',0
-MOVEA_MSG       DC.B    'MOVEA ',0
+MOVEA_MSG       DC.B    'MOVEA.L ',0
 MOVEAW_MSG      DC.B    'MOVEA.W ',0
 MOVEM_MSG       DC.B    'MOVEM',0
 MOVEQ_MSG       DC.B    'MOVEQ ',0
 
 NOP_MSG         DC.B    'NOP ',0
 CLR_MSG         DC.B    'CLR.',0
-OR_MSG          DC.B    'OR ',0
+OR_MSG          DC.B    'OR',0
 CMP_MSG         DC.B    'CMP.',0
 
 BCC_MSG         DC.B    'BCC.',0
@@ -2441,6 +2441,7 @@ INVALID_INPUT_MES    DC.B    'INVALID INPUT, TRY AGAIN',CR,LF,0
 
 *~Font name~Courier New~
 *~Font size~10~
+
 
 
 
