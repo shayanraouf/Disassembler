@@ -1162,12 +1162,33 @@ FIN_MOVEM_SIZE
                     ADD.L       #2,D7
                     MOVEA.L     A0,A5
                     ADDA.W      #1,A5
+                    JSR         BITS_5_THROUGH_3    *LOOK FOR -(A1) OPERAND
+                    CMP.B       #4,D4
+                    BEQ         ALT_LIST_TO_EA
+                    MOVE.W      (A0),D4 * isolate the variable that tells us whether the list comes first or not
                     LSL.W       #5,D4
                     LSR.W       #8,D4
                     LSR.W       #7,D4
                     CMP         #0,D4
                     BEQ         LIST_TO_EA  *DETERMINE WHETHER THE DESTINATION OPERAND OR SOURCE
                     JMP         EA_TO_LIST  *OPERAND IS A LIST
+ALT_LIST_TO_EA
+                    JSR         THE_BACKWARDS_LOOP
+                    JSR         PRINT_SPACE      
+                    JSR         PRINT_SIDE_D
+                    JSR         FORWARD_SLASH_CALCULATION
+                    JSR         THE_BACKWARDS_LOOP
+                    JSR         PRINT_SIDE_A
+                    JSR         PRINT_COMMA
+                    MOVE.W      D5,D4
+                    JSR         BITS_2_THROUGH_0
+                    MOVE.W      D4,D3
+                    MOVE.W      D5,D4
+                    JSR         BITS_5_THROUGH_3
+                    JSR         MODE_JMP_TABLE      *PRINTS THE EFFECTIVE ADDRESS 
+                    SUB.L       #2,A0
+                    BRA         COMPARE
+
 LIST_TO_EA          
                     JSR         THE_LOOP
                     JSR         PRINT_SPACE         
@@ -1204,6 +1225,32 @@ EA_TO_LIST
                     JSR         THE_LOOP
                     JSR         PRINT_SIDE_D        *PRINT POSSIBLE DATA REGISTERS 
                     BRA         COMPARE                    
+                   
+THE_BACKWARDS_LOOP  
+                    ADDA.W      #1,A5
+                    MOVE.B      (A5),D4
+                    MOVE.B      #9,D3
+                    MOVE.B      #0,D0
+                    MOVE.B      #8,D1
+GET_REGISTER_NUM_ALT                    
+                    CMP         D0,D1
+                    BEQ         FIN_LOOP_ALT
+                    LSL.B       #1,D4
+                    BCS         ADD_REGISTER_ALT
+NEXT1_ALT           ADD.B       #1,D0
+                    JMP         GET_REGISTER_NUM_ALT
+
+FIN_LOOP_ALT        RTS            
+                    
+ADD_REGISTER_ALT    CMP         #9,D3
+                    BNE         NOT_EMPTY_ALT
+                    MOVE.B      D0,D3 
+NOT_EMPTY_ALT       MOVE.B      D0,D2                 
+                    JMP         NEXT1_ALT                   
+                    
+                    
+                    
+                    
                     
 THE_LOOP            
                     ADDA.W      #1,A5
@@ -1284,9 +1331,14 @@ PRINT_SINGLE_D
 DONT_PRINT_D        RTS
 
 FORWARD_SLASH_CALCULATION
-                    CMP         #9,D3
+                    CMP         #9,D3   *CHECK IF THERE IS ANYTHING THAT WOULD BE BEFORE THE SLASH
                     BEQ         NO_PRINT
-                    JSR         PRINT_FORWARD_SLASH
+                    MOVE.W      A5,A4
+                    ADDA.W     #1,A4               *CHECK IF THERE IS ANYTHING THAT WOULD BE AFTER THE SLASH
+                    MOVE.B      (A4),D4
+                    CMP.B       #0,D4
+                    BEQ         NO_PRINT
+                    JSR         PRINT_FORWARD_SLASH                   
 NO_PRINT            RTS
                    
 EA_BCC
