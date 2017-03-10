@@ -435,8 +435,8 @@ OPCODE_1100
     MOVE.W      (A0),D4 
     MOVE.W      (A0),D5
     JSR         BITS_8_THROUGH_6
-    CMP         #7,D4
-    BEQ         OPCODE_AND
+    CMP.B       #7,D4
+    BNE         OPCODE_AND
     
     LEA         MULS_MSG,A1         
     MOVE.B      #14,D0
@@ -722,6 +722,7 @@ PRINT_IMMEDIATE
     
     
 EA_MOVEB
+    CLR.L     D3
     CLR.L     D4
     CLR.L     D5
     MOVE.W   (A0),D4
@@ -730,7 +731,7 @@ EA_MOVEB
     JSR      BITS_2_THROUGH_0 * SAVE THE REGISTER FIRST
     MOVE.W   D4,D3            * NEEDS TO GO IN D3 FOR REGISTER JUMP TABLE
     
-    MOVE.W   D5,D4            * RESET TO ORIGANIAL OPCODE
+    MOVE.W   (A0),D4            * RESET TO ORIGANIAL OPCODE
     JSR      BITS_5_THROUGH_3 * GET BITS 5-3 FOR EA MODE
     JSR      MODE_JMP_TABLE   * JUMP TO MODE TABLE
 
@@ -740,12 +741,12 @@ EA_MOVEB
        
     JSR      PRINT_COMMA                           *print comma
                                   
-    MOVE.W   D5,D4              * RESET TO ORIGANIAL OPCODE  
+    MOVE.W   (A0),D4              * RESET TO ORIGANIAL OPCODE  
     JSR      BITS_11_THROUGH_9  * SAVE THE REGISTER FIRST
     MOVE.W   D4,D3              * NEEDS TO GO IN D3 FOR REGISTER JUMP TABLE 
     
     
-    MOVE.W   D5,D4              * RESET TO ORIGANIAL OPCODE
+    MOVE.W   (A0),D4              * RESET TO ORIGANIAL OPCODE
          
     JSR      BITS_8_THROUGH_6
     JSR      MODE_JMP_TABLE     * JUMP TO MODE TABLE
@@ -770,13 +771,13 @@ EA_MOVEL
     *JSR      REGISTER_JMP_TABLE
        
     JSR      PRINT_COMMA                           *print comma
-                                  
-    MOVE.W   D5,D4              * RESET TO ORIGANIAL OPCODE  
+    CLR.L     D4                              
+    MOVE.W   (A0),D4              * RESET TO ORIGANIAL OPCODE  
     JSR      BITS_11_THROUGH_9  * SAVE THE REGISTER FIRST
     MOVE.W   D4,D3              * NEEDS TO GO IN D3 FOR REGISTER JUMP TABLE 
     
     
-    MOVE.W   D5,D4              * RESET TO ORIGANIAL OPCODE
+    MOVE.W   (A0),D4              * RESET TO ORIGANIAL OPCODE
          
     JSR      BITS_8_THROUGH_6
     JSR      MODE_JMP_TABLE     * JUMP TO MODE TABLE
@@ -784,6 +785,8 @@ EA_MOVEL
     BRA COMPARE
 
 EA_MOVEW
+    CLR.L     D2
+    CLR.L     D3
     CLR.L     D4
     CLR.L     D5
     MOVE.W   (A0),D4
@@ -794,7 +797,7 @@ EA_MOVEW
     
     MOVE.W   #3,D2
     
-    MOVE.W   D5,D4            * RESET TO ORIGANIAL OPCODE
+    MOVE.W   (A0),D4            * RESET TO ORIGANIAL OPCODE
     JSR      BITS_5_THROUGH_3 * GET BITS 5-3 FOR EA MODE
     JSR      MODE_JMP_TABLE   * JUMP TO MODE TABLE
 
@@ -803,13 +806,14 @@ EA_MOVEW
     *JSR      REGISTER_JMP_TABLE
        
     JSR      PRINT_COMMA                           *print comma
-                                  
-    MOVE.W   D5,D4              * RESET TO ORIGANIAL OPCODE  
+    CLR.L     D4                              
+    MOVE.W   (A0),D4              * RESET TO ORIGANIAL OPCODE  
     JSR      BITS_11_THROUGH_9  * SAVE THE REGISTER FIRST
     MOVE.W   D4,D3              * NEEDS TO GO IN D3 FOR REGISTER JUMP TABLE 
     
-    
-    MOVE.W   D5,D4              * RESET TO ORIGANIAL OPCODE
+
+    CLR.L     D4
+    MOVE.W   (A0),D4              * RESET TO ORIGANIAL OPCODE
          
     JSR      BITS_8_THROUGH_6
     JSR      MODE_JMP_TABLE     * JUMP TO MODE TABLE
@@ -817,6 +821,8 @@ EA_MOVEW
     BRA COMPARE
     
 EA_MOVEAL
+    CLR.L     D2
+    CLR.L     D3
     CLR.L     D4
     CLR.L     D5
     MOVE.W   (A0),D4
@@ -826,7 +832,7 @@ EA_MOVEAL
     MOVE.W   D4,D3            * NEEDS TO GO IN D3 FOR REGISTER JUMP TABLE
     
     MOVE.W   #2,D2
-    MOVE.W   D5,D4            * RESET TO ORIGANIAL OPCODE
+    MOVE.W   (A0),D4            * RESET TO ORIGANIAL OPCODE
     JSR      BITS_5_THROUGH_3 * GET BITS 5-3 FOR EA MODE
     JSR      MODE_JMP_TABLE   * JUMP TO MODE TABLE
 
@@ -835,19 +841,24 @@ EA_MOVEAL
     *JSR      REGISTER_JMP_TABLE
        
     JSR      PRINT_COMMA                           *print comma
-                                  
-    MOVE.W   D5,D4              * RESET TO ORIGANIAL OPCODE  
+    
+    CLR.L     D4                              
+    MOVE.W   (A0),D4              * RESET TO ORIGANIAL OPCODE  
     JSR      BITS_11_THROUGH_9  * SAVE THE REGISTER FIRST
+    CLR.L     D3
     MOVE.W   D4,D3              * NEEDS TO GO IN D3 FOR REGISTER JUMP TABLE 
     
-    
-    MOVE.W   D5,D4              * RESET TO ORIGANIAL OPCODE
+    CLR.L     D4
+    MOVE.W   (A0),D4              * RESET TO ORIGANIAL OPCODE
          
     JSR      BITS_8_THROUGH_6
     JSR      MODE_JMP_TABLE     * JUMP TO MODE TABLE
 
     BRA COMPARE
 EA_MOVEAW
+
+    CLR.L     D2
+    CLR.L     D3
     CLR.L     D4
     CLR.L     D5
     MOVE.W   (A0),D4
@@ -858,7 +869,7 @@ EA_MOVEAW
     
     MOVE.W   #3,D2
     
-    MOVE.W   D5,D4            * RESET TO ORIGANIAL OPCODE
+    MOVE.W   (A0),D4            * RESET TO ORIGANIAL OPCODE
     JSR      BITS_5_THROUGH_3 * GET BITS 5-3 FOR EA MODE
     JSR      MODE_JMP_TABLE   * JUMP TO MODE TABLE
 
@@ -868,12 +879,12 @@ EA_MOVEAW
        
     JSR      PRINT_COMMA                           *print comma
                                   
-    MOVE.W   D5,D4              * RESET TO ORIGANIAL OPCODE  
+    MOVE.W   (A0),D4              * RESET TO ORIGANIAL OPCODE  
     JSR      BITS_11_THROUGH_9  * SAVE THE REGISTER FIRST
     MOVE.W   D4,D3              * NEEDS TO GO IN D3 FOR REGISTER JUMP TABLE 
     
     
-    MOVE.W   D5,D4              * RESET TO ORIGANIAL OPCODE
+    MOVE.W   (A0),D4              * RESET TO ORIGANIAL OPCODE
          
     JSR      BITS_8_THROUGH_6
     JSR      MODE_JMP_TABLE     * JUMP TO MODE TABLE
@@ -1722,7 +1733,7 @@ MODE_LITERAL_DATA
 MODE_WORD_DATA
                 JSR         PRINT_$
                 ADD.L       #2,D7
-                MOVEA.W     D7,A1
+                MOVEA.L     D7,A1
                 MOVE.W      (A1),D5
                 JSR         MY_VERSION_OF_PRINT_HEX
                 
@@ -2334,6 +2345,7 @@ INVALID_INPUT_MES    DC.B    'INVALID INPUT, TRY AGAIN',CR,LF,0
 
 *~Font name~Courier New~
 *~Font size~10~
+
 
 
 
