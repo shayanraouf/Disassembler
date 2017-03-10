@@ -493,10 +493,27 @@ OPCODE_1110
     LSL.W       #3,D5
     LSR.W       #8,D5
     LSR.W       #6,D5
+    
+    * determine if a logical shift -(AN) or (AN)+ (D1 holds machine code)
+    LSR.L       #8,D1           
+    LSR.L       #1,D1
+    CMP.L       #%01110001,D1   * determine if lsl/r -(AN)
+    BEQ         EA_LOGIC_SHIFT
+    MOVE.W      (A0),D1
+
     CMP         #$0,D5
     BEQ         EA_ARITH_SHIFT
     CMP         #$1,D5
     BEQ         EA_LOGIC_SHIFT
+    CMP         #$2,D5
+    BEQ         EA_LOGIC_SHIFT
+
+*    LSR.L       #8,D1           * determine if a logical shift (AN)+ (D1 holds machine code)
+*    LSR.L       #1,D1
+*    CMP.L       #%01110001,D1   * determine if lsl/r
+*    BEQ         EA_LOGIC_SHIFT
+
+    MOVE.W      (A0),D1
     CMP         #$3,D5
     BEQ         EA_ROTATE_SHIFT
     
@@ -567,6 +584,7 @@ EA_ARITH_SHIFT
     BEQ         SHIFT_BY_LITERAL
     JMP         SHIFT_BY_REGISTER
     BRA         COMPARE
+    
 EA_LOGIC_SHIFT
     LEA         LOGIC_SHIFT_MSG,A1
     MOVE.B      #14,D0
@@ -576,14 +594,41 @@ EA_LOGIC_SHIFT
     JSR         ISOLATE_BIT_8
     JSR         LEFT_OR_RIGHT
     JSR         PRINT_DOT
+    * check if shift_memory or shift_register
+    AND.W       #%0000000011000000,D5
+    LSR.W       #4,D5
+    CMP.B       #%1100,D5                  * checks if size equals 11 (only present in memory shifts)
+    BEQ         EA_LOGIC_SHIFT_MEMORY
+    MOVE.W      (A0),D5
+    JMP         EA_LOGIC_SHIFT_REGISTER
+    
+EA_LOGIC_SHIFT_MEMORY
+    MOVE.W      (A0),D5
+    JSR         PRINT_W
+    JSR         PRINT_SPACE
+    
+    * determine mode        (bits 3-5)
+    MOVE.W      D5,D4  * RESET              *get the mode and store in D4 for mode jump table
+    * determine register    (bits 0-2)
+    JSR         BITS_2_THROUGH_0
+    MOVE.W      D4,D3
+    MOVE.W      (A0),D4
+    JSR         BITS_5_THROUGH_3
+    JSR         MODE_JMP_TABLE       * Jumps to mode jmp table
+    
+    BRA         COMPARE
+    
+EA_LOGIC_SHIFT_REGISTER
+    MOVE.W      (A0),D5
     JSR         CHECK_SIZE
     JSR         PRINT_SPACE
     MOVE.W      (A0),D4
     JSR         ISOLATE_BIT_5
     CMP         #$0,D4
     BEQ         SHIFT_BY_LITERAL
-    JMP         SHIFT_BY_REGISTER
+    JSR         SHIFT_BY_REGISTER
     BRA         COMPARE
+    
 EA_ROTATE_SHIFT
                   LEA         ROTATE_SHIFT_MSG,A1
                   MOVE.B      #14,D0
@@ -2392,6 +2437,7 @@ INVALID_INPUT_MES    DC.B    'INVALID INPUT, TRY AGAIN',CR,LF,0
 
 *~Font name~Courier New~
 *~Font size~10~
+
 
 
 
