@@ -1278,11 +1278,10 @@ EA_BCC
             CLR.L         D4             *CLEAR DATA REGISTER D4,D4 TO BE SAFE
             CLR.L         D5
     
-            MOVE.W      (A0),D4          * MOVE THE INSTRUCTION TO D4
-            MOVE.W      D4,D5            * SAVE IN D5 TO REUSE IF NEEDED 
+            MOVE.W     (A0),D4          * MOVE THE INSTRUCTION TO D4
+            MOVE.W     D4,D5            * SAVE IN D5 TO REUSE IF NEEDED 
     
-            JSR        BITS_7_THROUGH_0  * GET THE BITS 7-0, SAVES IT IN D4
-
+            JSR        BITS_7_THROUGH_0  * GET THE BITS 7-0, SAVES IT IN D4       
             CMP.W      #$00,D4            
             BEQ        BIT_DISPLACEMENT_16  * IF 8-BIT DISPLACEMENT == $00 THEN WE NEED TO LOOK AT THE 16-BIT DISPLACEMENT
             BRA        BIT_DISPLACEMENT_8   
@@ -1290,13 +1289,14 @@ EA_BCC
 BCC_CONT    BRA COMPARE
             
 BIT_DISPLACEMENT_16
+        JSR         PRINT_W
         JSR         PRINT_SPACE
         JSR         PRINT_$
         
         CLR.L       D0              *CLEAR DATA REGISTER D0, D1
         CLR.L       D1
         
-        ADD.L       #2,D7     
+        ADD.L       #2,D7           * 
       
         MOVE.W      A0,D1           * store address of instruction
         ADD.L       #2,A0           * move to offset
@@ -1304,49 +1304,38 @@ BIT_DISPLACEMENT_16
         MOVE.W      (A0),D0         * store offset of Bcc
         ADD.W       #2,D0           * add two to offset
         ADD.W       D0,D1           * add offset to stored address
-        
-        MOVE.W      D1,D5
+        MOVE.W      D1,D5           * move address into D5 for printing
         JSR         MY_VERSION_OF_PRINT_HEX        
         
-
-*        MOVE.B      #15,D0
-*        MOVE.B      #16,D2
-*        TRAP        #15
-        CLR.L       D1
         CLR.L       D0
+        CLR.L       D1
         CLR.L       D2
 
         BRA         BCC_CONT 
 
 BIT_DISPLACEMENT_8
+        JSR         PRINT_B
         JSR         PRINT_SPACE
         JSR         PRINT_$
         
-        CLR.L       D0             *CLEAR DATA REGISTER D4,D4 TO BE SAFE
+        CLR.L       D0               * CLEAR DATA REGISTER D4,D4 TO BE SAFE
         CLR.L       D1
 
-        MOVE.W      A0,D1           * store address of instruction
-        ADD.W       #2,A0           * move to offset
-               
-        ADD.L       #2,D7
+        MOVE.W      A0,D1            * store address of instruction
+        *ADD.L       #2,D7
     
-        MOVE.W      (A0),D0         * store offset of Bcc
-        LSR.W       #8,D0           * bit shift right to only use byte
-        
-        ADD.W       #2,D0           * add two to offset
-        MOVE.B      D0,D5        
+        MOVE.W      (A0),D0          * store offset of Bcc
+        AND.L       #%11111111,D0    * return byte of offset
+        ADD.W       #2,D0            * add two to offset
+        ADD.W       D0,D1            * add offset to stored address
+        MOVE.W      D1,D5            * move address into D5 for printing
         JSR         MY_VERSION_OF_PRINT_HEX
-*        ADD.W       D0,D1           * add offset to stored address
-*        MOVE.B      #15,D0
-*        MOVE.B      #16,D2
-*        TRAP        #15
-        CLR.L       D1
+
         CLR.L       D0
+        CLR.L       D1
         CLR.L       D2
             
         BRA         BCC_CONT           
-
-
     
 ************************************
 * LOGIC FOR THE <ea>,<ea> OPMODE
@@ -2301,9 +2290,9 @@ CLR_MSG         DC.B    'CLR.',0
 OR_MSG          DC.B    'OR ',0
 CMP_MSG         DC.B    'CMP.',0
 
-BCC_MSG         DC.B    'BCC',0
-BGT_MSG         DC.B    'BGT',0
-BLE_MSG         DC.B    'BLE',0
+BCC_MSG         DC.B    'BCC.',0
+BGT_MSG         DC.B    'BGT.',0
+BLE_MSG         DC.B    'BLE.',0
 
 JSR_MSG         DC.B    'JSR ',0
 RTS_MSG         DC.B    'RTS ',0
@@ -2334,6 +2323,7 @@ INVALID_INPUT_MES    DC.B    'INVALID INPUT, TRY AGAIN',CR,LF,0
 
 *~Font name~Courier New~
 *~Font size~10~
+
 
 
 
