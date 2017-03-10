@@ -676,30 +676,34 @@ CONT_ADDI   JSR       PRINT_SPACE
                                     *print the immediate data part
             JSR       PRINT_HASH_TAG
             JSR       PRINT_$
-            MOVE.W    A0,A5
+ 
+            MOVE.L    A0,A5
             ADDA.L    #2,A5
             CMP       #2,D4         * FIGURE OUT IF ITS A LONG OR NOT TO KNOW HOW FAR TO READ
             BEQ       ITS_A_LONG
             JSR       READ_OTHER
             JMP       FINISH_ADDI_IMMEDIATE
 ITS_A_LONG  ADD.L     #2,D7
+            *MOVE.L    D7,A0
             JSR       READ_LONG
 
 FINISH_ADDI_IMMEDIATE   
-            JSR       PRINT_COMMA         
-            CLR       D4
-            CLR       D3
+            JSR       PRINT_COMMA
+            CLR.L       D5
+            CLR.L       D4
+            CLR.L       D3
 
 
             MOVE.W    (A0),D4
             JSR       BITS_2_THROUGH_0 * SAVE THE REGISTER FIRST
             MOVE.W    D4,D3            * NEEDS TO GO IN D3 FOR REGISTER JUMP TABLE
             
-        
+            CLR.L     D4
             MOVE.W   (A0),D4            * RESET TO ORIGANIAL OPCODE
             JSR      BITS_5_THROUGH_3 * GET BITS 5-3 FOR EA MODE
-            JSR      MODE_JMP_TABLE   * JUMP TO MODE TABLE
             ADD.L    #2,D7
+            JSR      MODE_JMP_TABLE   * JUMP TO MODE TABLE
+
             BRA COMPARE
 
 READ_LONG
@@ -1699,6 +1703,7 @@ MODE_111_CONT   RTS
 MODE_LONG_DATA
                 JSR         PRINT_$
                 ADD.L       #2,D7
+                MOVEA.L     #$00000000,A1
                 MOVEA.L     D7,A1
                 MOVE.L      (A1),D5
                 JSR         MY_VERSION_OF_PRINT_HEX
@@ -1722,6 +1727,7 @@ MODE_LITERAL_DATA
 MODE_WORD_DATA
                 JSR         PRINT_$
                 ADD.L       #2,D7
+                MOVEA.L     #$00000000,A1
                 MOVEA.L     D7,A1
                 MOVE.W      (A1),D5
                 JSR         MY_VERSION_OF_PRINT_HEX
@@ -2334,6 +2340,7 @@ INVALID_INPUT_MES    DC.B    'INVALID INPUT, TRY AGAIN',CR,LF,0
 
 *~Font name~Courier New~
 *~Font size~10~
+
 
 
 

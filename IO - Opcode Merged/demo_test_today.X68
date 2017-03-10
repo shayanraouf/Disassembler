@@ -13,6 +13,27 @@ start		EQU	$00009000	* ORG and END address
 * ORG the program so that it straddles the address boundary $00007FFF to $00008000
 
 		ORG	start
+    ADDI.B    #$12,D1
+    ADDI.B    #$12,(A0)
+    ADDI.B    #$12,(A0)+
+    ADDI.B    #$12,-(A0)
+    ADDI.B    #$12,$1234
+
+    ADDI.B    #$12,$12345678
+    ADDI.W    #$1234,D1
+    ADDI.W    #$1234,(A0)
+    ADDI.W    #$1234,(A0)+
+    ADDI.W    #$1234,-(A0)
+    ADDI.W    #$1234,$1234
+    ADDI.W    #$1234,$12345678
+    ADDI.L    #$12345678,D1
+    ADDI.L    #$12345678,(A0)
+    ADDI.L    #$12345678,(A0)+
+    ADDI.L    #$12345678,-(A0)
+    ADDI.L    #$12345678,$1234
+    ADDI.L    #$12345678,$12345678		
+		
+		
 
     NOP
     RTS
@@ -555,6 +576,7 @@ label4    CMP.B     $12,D1
 * Put variables and constants here
 
     END    START        ; last line of source
+
 
 
 
