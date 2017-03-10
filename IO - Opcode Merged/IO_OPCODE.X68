@@ -1198,11 +1198,15 @@ EA_MOVEM
                      MOVE.W      (A0),D5
                      BTST        #6,D4          *CHECKING TO SEE WHAT SIZE THE OPERATION IS
                      BEQ         MOVEM_W
-MOVEM_L              JSR        PRINT_L
-                     JMP        FIN_MOVEM_SIZE
-MOVEM_W              JSR         PRINT_W
-FIN_MOVEM_SIZE      
-                    
+                     
+MOVEM_L              
+                    JSR        PRINT_L
+                    JMP        FIN_MOVEM_SIZE
+                     
+MOVEM_W              
+                    JSR         PRINT_W
+
+FIN_MOVEM_SIZE        
                     MOVE.W      (A0),D4    *FOR LOOP TO ADD REGISTER NUMBERS
                     ADD.L       #2,D7
                     MOVEA.L     A0,A5
@@ -1217,6 +1221,7 @@ FIN_MOVEM_SIZE
                     CMP         #0,D4
                     BEQ         LIST_TO_EA  *DETERMINE WHETHER THE DESTINATION OPERAND OR SOURCE
                     JMP         EA_TO_LIST  *OPERAND IS A LIST
+                    
 ALT_LIST_TO_EA
                     JSR         THE_BACKWARDS_LOOP
                     JSR         PRINT_SPACE      
@@ -1250,9 +1255,9 @@ LIST_TO_EA
                     JSR         MODE_JMP_TABLE      *PRINTS THE EFFECTIVE ADDRESS 
                     SUB.L       #2,A0
                     BRA         COMPARE
-                    
-                    
-EA_TO_LIST                              
+             
+EA_TO_LIST         
+                    JSR         PRINT_SPACE                     
                     MOVE.W      D5,D4               *PRINTS THE EFFECTIVE ADDRESS 
                     JSR         BITS_2_THROUGH_0
                     MOVE.W      D4,D3
@@ -1264,7 +1269,6 @@ EA_TO_LIST
                     MOVEA.L     A0,A5
                     ADDA.W      #1,A5
                     JSR         THE_LOOP
-                    JSR         PRINT_SPACE
                     JSR         PRINT_SIDE_A        *PRINT POSSIBLE ADDRESS REGISTERS 
                     JSR         FORWARD_SLASH_CALCULATION
                     JSR         THE_LOOP
@@ -2437,6 +2441,7 @@ INVALID_INPUT_MES    DC.B    'INVALID INPUT, TRY AGAIN',CR,LF,0
 
 *~Font name~Courier New~
 *~Font size~10~
+
 
 
 
