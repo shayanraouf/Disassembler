@@ -587,7 +587,7 @@ EA_ARITH_SHIFT
     JSR         ISOLATE_BIT_5	     *Or is a literal number	
     CMP         #$0,D4
     BEQ         SHIFT_BY_LITERAL
-    JMP         SHIFT_BY_REGISTER
+    JSR         SHIFT_BY_REGISTER
     BRA         COMPARE
     
 EA_LOGIC_SHIFT				*Prints shift type.
@@ -632,6 +632,7 @@ EA_LOGIC_SHIFT_REGISTER
     CMP         #$0,D4
     BEQ         SHIFT_BY_LITERAL
     JSR         SHIFT_BY_REGISTER
+    
     BRA         COMPARE
     
 EA_ROTATE_SHIFT
@@ -654,16 +655,17 @@ EA_ROTATE_SHIFT
                   JSR         ISOLATE_BIT_5
                   CMP         #$0,D4
                   BEQ         SHIFT_BY_LITERAL		
-                  JMP         SHIFT_BY_REGISTER
+                  JSR         SHIFT_BY_REGISTER
+                  
                   BRA         COMPARE
+                  
 FINISH_SHIFT_TYPE
                   MOVE.W      (A0),D4
                   JSR         BITS_2_THROUGH_0
                   MOVE.W      D4,D3
                   MOVE.W      #$0,D4
                   JSR         MODE_JMP_TABLE
-                  RTS
-                  
+                  RTS  
 
 SHIFT_BY_REGISTER
                   MOVE.W      (A0),D4
@@ -672,7 +674,8 @@ SHIFT_BY_REGISTER
                   MOVE.W      #0,D4
                   JSR         MODE_JMP_TABLE
                   JSR         PRINT_COMMA
-                  JMP         FINISH_SHIFT_TYPE
+                  JSR         FINISH_SHIFT_TYPE
+                  RTS
 SHIFT_BY_LITERAL
                   MOVE.W      (A0),D4			
                   JSR         BITS_11_THROUGH_9
@@ -681,11 +684,18 @@ SHIFT_BY_LITERAL
                   CMP         #$0,D3
                   BNE         CONTINUE_REG_NUM
                   JSR         PRINT_8
-                  JMP         CONTINUE
-CONTINUE_REG_NUM  JSR         REGISTER_JMP_TABLE 
+                  JSR         CONTINUE
+                  RTS
+                  
+CONTINUE_REG_NUM  
+                  JSR         REGISTER_JMP_TABLE
+
 CONTINUE          JSR         PRINT_COMMA
-                  JMP         FINISH_SHIFT_TYPE
-    
+                  JSR         FINISH_SHIFT_TYPE
+                            * could not verify why RTS wasn't returning below, so I compare here
+                  BRA         COMPARE
+                  RTS       
+                  
 **************************
 * PRINT 8
 **************************
@@ -2446,6 +2456,7 @@ INVALID_INPUT_MES    DC.B    'INVALID INPUT, TRY AGAIN',CR,LF,0
 
 *~Font name~Courier New~
 *~Font size~10~
+
 
 
 
