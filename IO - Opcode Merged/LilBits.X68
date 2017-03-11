@@ -1,5 +1,5 @@
 *-----------------------------------------------------------
-* Title      : Disassembler
+* Title      : LilBits.X68
 * Written by : Peter Van, Shayan Raouf, John Fitzgerald
 * Date       : 3-10-17
 * Description: Disassembles machine code into assembly language
@@ -8,7 +8,7 @@ addr1     EQU     $4000
     ORG    $1000
 START:                  ; first instruction of program
 *D2-D3 holds addresses
-*D4-D5 for loops
+*D4-D5 for loops 
 *D6-D7 for error handling
 * Put program code here
 *____________INTRODUCTION______________________________
@@ -490,47 +490,62 @@ OPCODE_ADDA_WORD
     JSR         PRINT_W
     JSR         PRINT_SPACE
     JSR         EA_ADDA    
-    
 
+*--------------------------------------------------------------
+*  RS, LS, and RO (left and right)
+*--------------------------------------------------------------
 OPCODE_1110
     MOVE.W      (A0),D5         *ISOLATE THE BITS THAT MAKE
     LSL.W       #8,D5           *ALL THE SHIFT OP CODES DIFFERENT
+    LSR.W       #8,D5
+    LSR.W       #6,D5
+    *LSR.W       #6,D5
+    CMP         #$3,D5          * determine if memory shift
+    BEQ         OPCODE_1110_MEMORY_SHIFT
+    
+    BRA         OPCODE_1110_CONT
+
+*--------------------------------------------------------------
+*  Determine what type of shift (and if memory shift)
+*--------------------------------------------------------------
+OPCODE_1110_MEMORY_SHIFT
+    MOVE.W      (A0),D5             * reset
+    LSR.W       #$8,D5              * check type (AS, LS, RO) based on bits 9-15
+    LSR.W       #$1,D5
+    CMP         #$70,D5
+    BEQ         EA_ARITH_SHIFT
+    CMP         #$71,D5
+    BEQ         EA_LOGIC_SHIFT
+    CMP         #$73,D5
+    BEQ         EA_ROTATE_SHIFT
+           
+    BRA         OPCODE_1110_CONT    * couldn't determine (treat as register shift)
+
+*--------------------------------------------------------------
+*  Determine what type of shift (register shift)
+*--------------------------------------------------------------
+OPCODE_1110_CONT                    
+    MOVE.W      (A0),D5             * reset instruction
+    LSL.W       #8,D5               * check type (AS, LS, RO) based on bits 3-4
     LSL.W       #3,D5
     LSR.W       #8,D5
     LSR.W       #6,D5
-    
-    * determine if a logical shift -(AN) or (AN)+ (D1 holds machine code)
-    LSR.L       #8,D1           
-    LSR.L       #1,D1
-    CMP.L       #%01110001,D1   * determine if lsl/r -(AN)
-    BEQ         EA_LOGIC_SHIFT
-    MOVE.W      (A0),D1
-
     CMP         #$0,D5
     BEQ         EA_ARITH_SHIFT
     CMP         #$1,D5
     BEQ         EA_LOGIC_SHIFT
-    CMP         #$2,D5
-    BEQ         EA_LOGIC_SHIFT
-
-*    LSR.L       #8,D1           * determine if a logical shift (AN)+ (D1 holds machine code)
-*    LSR.L       #1,D1
-*    CMP.L       #%01110001,D1   * determine if lsl/r
-*    BEQ         EA_LOGIC_SHIFT
-
-    MOVE.W      (A0),D1
     CMP         #$3,D5
     BEQ         EA_ROTATE_SHIFT
     
+    BRA         ERROR
+
 OPCODE_1111
     BRA         ERROR 
 
 
-*Effective Addressing Section----------------------------------
 *--------------------------------------------------------------
+*  Effective Addressing Section  ------------------------------
 *--------------------------------------------------------------
-
-*--------------------------------------------------------------------------------------------------
 EA_ADDA
 
     *<ea>********************************************************
@@ -571,94 +586,38 @@ EA_ADDA
     BRA     COMPARE 
 *--------------------------------------------------------------------------------------------------   
 
-
 EA_ARITH_SHIFT
-    LEA         ARITH_SHIFT_MSG,A1	*Prints shift type.
+    LEA         ARITH_SHIFT_MSG,A1
     MOVE.B      #14,D0
     TRAP        #15
-    MOVE.W      (A0),D4			
-    MOVE.W      D4,D5       *SAVE
-    JSR         ISOLATE_BIT_8        *DETERMINES DIRECTION OF SHIFT by isolating a bit
-    JSR         LEFT_OR_RIGHT	     *CHARACTER PRINTING
-    JSR         PRINT_DOT            
-    JSR         CHECK_SIZE	     *calculates and prints size
-    JSR         PRINT_SPACE
-    MOVE.W      (A0),D4		     *Isolates bit 5 to see if the source number is coming from a register
-    JSR         ISOLATE_BIT_5	     *Or is a literal number	
-    CMP         #$0,D4
-    BEQ         SHIFT_BY_LITERAL
-    JSR         SHIFT_BY_REGISTER
-    BRA         COMPARE
+    JSR         EA_SHIFT
     
-EA_LOGIC_SHIFT				*Prints shift type.
+EA_LOGIC_SHIFT				
     LEA         LOGIC_SHIFT_MSG,A1
     MOVE.B      #14,D0
     TRAP        #15
-    MOVE.W      (A0),D4
-    MOVE.W      D4,D5       *SAVE
-    JSR         ISOLATE_BIT_8		*DETERMINES DIRECTION OF SHIFT by isolating a bit
-    JSR         LEFT_OR_RIGHT
-    JSR         PRINT_DOT
-    * check if shift_memory or shift_register
-    AND.W       #%0000000011000000,D5
+    JSR         EA_SHIFT
+
+EA_ROTATE_SHIFT
+    LEA         ROTATE_SHIFT_MSG,A1
+    MOVE.B      #14,D0
+    TRAP        #15
+    JSR         EA_SHIFT
+
+EA_SHIFT
+    MOVE.W      (A0),D4		         * reset instruction	
+    MOVE.W      D4,D5                * save instruction
+    JSR         ISOLATE_BIT_8        * save for direction
+    JSR         LEFT_OR_RIGHT	     * determine direction
+    JSR         PRINT_DOT            
+    
+    AND.W       #%0000000011000000,D5      * check if shift_memory or shift_register
     LSR.W       #4,D5
     CMP.B       #%1100,D5                  * checks if size equals 11 (only present in memory shifts)
-    BEQ         EA_LOGIC_SHIFT_MEMORY
+    BEQ         EA_1110_SHIFT_MEMORY
     MOVE.W      (A0),D5
-    JMP         EA_LOGIC_SHIFT_REGISTER
-    
-EA_LOGIC_SHIFT_MEMORY
-    MOVE.W      (A0),D5
-    JSR         PRINT_W
-    JSR         PRINT_SPACE
-    
-    * determine mode        (bits 3-5)
-    MOVE.W      D5,D4  * RESET              *get the mode and store in D4 for mode jump table
-    * determine register    (bits 0-2)
-    JSR         BITS_2_THROUGH_0
-    MOVE.W      D4,D3
-    MOVE.W      (A0),D4
-    JSR         BITS_5_THROUGH_3
-    JSR         MODE_JMP_TABLE       * Jumps to mode jmp table
-    
-    BRA         COMPARE
-    
-EA_LOGIC_SHIFT_REGISTER
-    MOVE.W      (A0),D5
-    JSR         CHECK_SIZE
-    JSR         PRINT_SPACE
-    MOVE.W      (A0),D4
-    JSR         ISOLATE_BIT_5
-    CMP         #$0,D4
-    BEQ         SHIFT_BY_LITERAL
-    JSR         SHIFT_BY_REGISTER
-    
-    BRA         COMPARE
-    
-EA_ROTATE_SHIFT
-                  LEA         ROTATE_SHIFT_MSG,A1
-                  MOVE.B      #14,D0
-                  TRAP        #15
-                  MOVE.W      (A0),D4
-                  MOVE.W      D4,D5       
-                  JSR         ISOLATE_BIT_8		*calculates whether to print L or R
-                  JSR         LEFT_OR_RIGHT		*Printing for common things like spaces
-                  JSR         PRINT_DOT
-                  JSR         CHECK_SIZE		*calculates and prints the size
-                  JSR         PRINT_SPACE
-                  MOVE.W      (A0),D4
-                  JSR         BITS_7_THROUGH_6		
-                  CMP         #$11,D4
-                  BEQ         FINISH_SHIFT_TYPE
-		 
-                  MOVE.W      (A0),D4
-                  JSR         ISOLATE_BIT_5
-                  CMP         #$0,D4
-                  BEQ         SHIFT_BY_LITERAL		
-                  JSR         SHIFT_BY_REGISTER
-                  
-                  BRA         COMPARE
-                  
+    JMP         EA_1110_SHIFT_REGISTER
+             
 FINISH_SHIFT_TYPE
                   MOVE.W      (A0),D4
                   JSR         BITS_2_THROUGH_0
@@ -686,7 +645,7 @@ SHIFT_BY_LITERAL
                   JSR         PRINT_8
                   JSR         CONTINUE
                   RTS
-                  
+
 CONTINUE_REG_NUM  
                   JSR         REGISTER_JMP_TABLE
 
@@ -696,6 +655,34 @@ CONTINUE          JSR         PRINT_COMMA
                   BRA         COMPARE
                   RTS       
                   
+EA_1110_SHIFT_MEMORY
+    MOVE.W      (A0),D5
+    JSR         PRINT_W
+    JSR         PRINT_SPACE
+    
+    * determine mode        (bits 3-5)
+    MOVE.W      D5,D4  * RESET              *get the mode and store in D4 for mode jump table
+    * determine register    (bits 0-2)
+    JSR         BITS_2_THROUGH_0
+    MOVE.W      D4,D3
+    MOVE.W      (A0),D4
+    JSR         BITS_5_THROUGH_3
+    JSR         MODE_JMP_TABLE       * Jumps to mode jmp table
+    
+    BRA         COMPARE
+    
+EA_1110_SHIFT_REGISTER
+    MOVE.W      (A0),D5
+    JSR         CHECK_SIZE
+    JSR         PRINT_SPACE
+    MOVE.W      (A0),D4
+    JSR         ISOLATE_BIT_5
+    CMP         #$0,D4
+    BEQ         SHIFT_BY_LITERAL
+    JSR         SHIFT_BY_REGISTER
+    
+    BRA         COMPARE
+    
 **************************
 * PRINT 8
 **************************
@@ -2456,6 +2443,12 @@ INVALID_INPUT_MES    DC.B    'INVALID INPUT, TRY AGAIN',CR,LF,0
 
 *~Font name~Courier New~
 *~Font size~10~
+
+
+
+
+
+
 
 
 
