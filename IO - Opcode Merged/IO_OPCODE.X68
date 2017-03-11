@@ -124,17 +124,17 @@ JMP_TABLE
      JMP         OPCODE_1110
      JMP         OPCODE_1111
      
-SCREEN_COUNTER
-    CLR         D5
-    MOVE.B      $150,D5
+SCREEN_COUNTER				*Every 30 lines, user will be ask if they want to continue to print the 
+    CLR         D5			*rest of the translated machine code. If they select no then the program will end.
+    MOVE.B      $150,D5			*They enter'Y' if they want to continue.
     ADDI.B      #1,D5
     CMP         #30,D5
     BEQ         ASK_TO_RESET
     MOVE.B      D5,$150
     JMP         OP_BEGINNING
     
-ASK_TO_RESET
-    LEA      RESET_MESSAGE,A1
+ASK_TO_RESET				*Ask the user if they want to continue printing.
+    LEA      RESET_MESSAGE,A1		*They enter'Y' if they want to continue.
     TRAP     #15
     MOVE.B   #5,D0
     TRAP     #15  
@@ -143,16 +143,21 @@ ASK_TO_RESET
     CMP      #$79,D1
     BEQ      DONT_RESET
     JMP      END
-DONT_RESET
-    CLR         D5
-    MOVE.B      D5,$150
+DONT_RESET				*In the case the user is ask if they want to reset and choses not to, the
+    CLR         D5			*line counter will reset. After 30 more lines of code print, the user will be asked 
+    MOVE.B      D5,$150			*again if they want to reset.
     JSR         PRINT_NEW_LINE
     JMP         OP_BEGINNING
 ERROR
-    LEA         ERROR_MSG,A1
+    LEA         ERROR_MSG,A1		*Prints an error
     MOVE.B      #14,D0
     TRAP        #15
     BRA         COMPARE
+    
+    *From this point there will be lots of subroutines that start with OPCODE. In each of these routine, a certain part of the
+    *whole machine code's instruction will get looked at. These small parts get isolated by copying the machine code to a register
+    *and shifting the register's data. Using such a part of the machine code will allow the function to
+    *move down to another function which is made specifically for the defined OPCODE.
 OPCODE_0000
     MOVE.W      (A0),D4
     JSR         BITS_11_THROUGH_8
@@ -568,30 +573,30 @@ EA_ADDA
 
 
 EA_ARITH_SHIFT
-    LEA         ARITH_SHIFT_MSG,A1
+    LEA         ARITH_SHIFT_MSG,A1	*Prints shift type.
     MOVE.B      #14,D0
     TRAP        #15
-    MOVE.W      (A0),D4
+    MOVE.W      (A0),D4			
     MOVE.W      D4,D5       *SAVE
-    JSR         ISOLATE_BIT_8        *DETERMINES DIRECTION OF SHIFT
-    JSR         LEFT_OR_RIGHT
-    JSR         PRINT_DOT            *CHARACTER PRINTING
-    JSR         CHECK_SIZE
+    JSR         ISOLATE_BIT_8        *DETERMINES DIRECTION OF SHIFT by isolating a bit
+    JSR         LEFT_OR_RIGHT	     *CHARACTER PRINTING
+    JSR         PRINT_DOT            
+    JSR         CHECK_SIZE	     *calculates and prints size
     JSR         PRINT_SPACE
-    MOVE.W      (A0),D4
-    JSR         ISOLATE_BIT_5
+    MOVE.W      (A0),D4		     *Isolates bit 5 to see if the source number is coming from a register
+    JSR         ISOLATE_BIT_5	     *Or is a literal number	
     CMP         #$0,D4
     BEQ         SHIFT_BY_LITERAL
     JMP         SHIFT_BY_REGISTER
     BRA         COMPARE
     
-EA_LOGIC_SHIFT
+EA_LOGIC_SHIFT				*Prints shift type.
     LEA         LOGIC_SHIFT_MSG,A1
     MOVE.B      #14,D0
     TRAP        #15
     MOVE.W      (A0),D4
     MOVE.W      D4,D5       *SAVE
-    JSR         ISOLATE_BIT_8
+    JSR         ISOLATE_BIT_8		*DETERMINES DIRECTION OF SHIFT by isolating a bit
     JSR         LEFT_OR_RIGHT
     JSR         PRINT_DOT
     * check if shift_memory or shift_register
@@ -634,21 +639,21 @@ EA_ROTATE_SHIFT
                   MOVE.B      #14,D0
                   TRAP        #15
                   MOVE.W      (A0),D4
-                  MOVE.W      D4,D5       *SAVE
-                  JSR         ISOLATE_BIT_8
-                  JSR         LEFT_OR_RIGHT
+                  MOVE.W      D4,D5       
+                  JSR         ISOLATE_BIT_8		*calculates whether to print L or R
+                  JSR         LEFT_OR_RIGHT		*Printing for common things like spaces
                   JSR         PRINT_DOT
-                  JSR         CHECK_SIZE
+                  JSR         CHECK_SIZE		*calculates and prints the size
                   JSR         PRINT_SPACE
                   MOVE.W      (A0),D4
-                  JSR         BITS_7_THROUGH_6
+                  JSR         BITS_7_THROUGH_6		
                   CMP         #$11,D4
                   BEQ         FINISH_SHIFT_TYPE
 		 
                   MOVE.W      (A0),D4
                   JSR         ISOLATE_BIT_5
                   CMP         #$0,D4
-                  BEQ         SHIFT_BY_LITERAL
+                  BEQ         SHIFT_BY_LITERAL		
                   JMP         SHIFT_BY_REGISTER
                   BRA         COMPARE
 FINISH_SHIFT_TYPE
@@ -669,7 +674,7 @@ SHIFT_BY_REGISTER
                   JSR         PRINT_COMMA
                   JMP         FINISH_SHIFT_TYPE
 SHIFT_BY_LITERAL
-                  MOVE.W      (A0),D4
+                  MOVE.W      (A0),D4			
                   JSR         BITS_11_THROUGH_9
                   MOVE.W      D4,D3
                   JSR         PRINT_HASH_TAG
